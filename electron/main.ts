@@ -32,6 +32,8 @@ function createWindow() {
     minHeight: 500,
     frame: false, // Frameless window
     titleBarStyle: 'hidden',
+    transparent: true,
+    backgroundMaterial: 'acrylic',
     webPreferences: {
       preload: path.join(__dirname, 'preload.mjs'),
       nodeIntegration: false,

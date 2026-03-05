@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState } from "react"
-import { useTheme as useNextTheme } from "next-themes"
+import { ThemeProvider as NextThemesProvider, useTheme as useNextTheme } from "next-themes"
 
 type ThemeProviderProps = {
   children: React.ReactNode
@@ -29,11 +29,10 @@ const initialState: ThemeProviderState = {
 
 const ThemeProviderContext = createContext<ThemeProviderState>(initialState)
 
-export function ThemeProvider({
+function CustomThemeProvider({
   children,
   defaultTheme = "system",
   storageKey = "tasklyn-ui-theme",
-  ...props
 }: ThemeProviderProps) {
   const { theme, setTheme: setNextTheme } = useNextTheme()
   
@@ -95,9 +94,17 @@ export function ThemeProvider({
   }
 
   return (
-    <ThemeProviderContext.Provider {...props} value={value}>
+    <ThemeProviderContext.Provider value={value}>
       {children}
     </ThemeProviderContext.Provider>
+  )
+}
+
+export function ThemeProvider({ children, ...props }: ThemeProviderProps) {
+  return (
+    <NextThemesProvider attribute="class" defaultTheme={props.defaultTheme} enableSystem>
+      <CustomThemeProvider {...props}>{children}</CustomThemeProvider>
+    </NextThemesProvider>
   )
 }
 
