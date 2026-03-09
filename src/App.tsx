@@ -4,10 +4,12 @@ import { FolderProvider } from '@/context/FolderContext';
 import { SearchFilterBar } from '@/components/SearchFilterBar';
 import { TaskList } from '@/components/TaskList';
 import { Sidebar } from '@/components/Sidebar';
-import { SettingsModal } from '@/components/SettingsModal';
+import { SettingsView } from '@/components/SettingsModal';
 import { HistoryModal } from '@/components/HistoryModal';
 import { Plus, History } from 'lucide-react';
 import { useState } from 'react';
+import { ArchivalProvider } from '@/context/ArchivalContext';
+import { ThemeProvider } from '@/components/ThemeProvider';
 
 function AppContent() {
   const { addTask } = useTasks();
@@ -28,10 +30,12 @@ function AppContent() {
     <div className="flex flex-col h-screen w-screen overflow-hidden bg-background text-foreground transition-colors duration-300">
       <TitleBar onSettingsClick={() => setIsSettingsOpen(true)} />
       <Sidebar />
-      <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
       <HistoryModal isOpen={isHistoryOpen} onClose={() => setIsHistoryOpen(false)} />
       
-      <main className="flex-1 flex flex-col p-4 overflow-hidden max-w-lg mx-auto w-full relative">
+      {isSettingsOpen ? (
+        <SettingsView isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
+      ) : (
+        <main className="flex-1 flex flex-col p-4 overflow-hidden max-w-lg mx-auto w-full relative">
         <div className="flex items-center justify-between mb-2">
           <SearchFilterBar />
           <div className="flex gap-1 ml-2">
@@ -79,13 +83,11 @@ function AppContent() {
           )}
         </form>
       </main>
+      )}
     </div>
   );
 }
 
-import { ArchivalProvider } from '@/context/ArchivalContext';
-
-import { ThemeProvider } from '@/components/ThemeProvider';
 
 function App() {
   return (

@@ -60,17 +60,17 @@ function CustomThemeProvider({
 
   // Sync native window opacity when it changes
   useEffect(() => {
-    if (window.systemAPI?.setWindowOpacity) {
-      window.systemAPI.setWindowOpacity(opacity);
-      
-      // Also apply a transparent background to React root for fallback fallback
-      // Using tailwind bg-transparent and controlling the html background
-      const root = window.document.documentElement;
-      if (opacity < 1) {
-        root.style.backgroundColor = `rgba(var(--background), ${opacity})`;
-      } else {
-        root.style.backgroundColor = ''; // Revert to css variable
-      }
+    // We do NOT use win.setOpacity() here because it turns the entire window ghost-like (including text).
+    // Instead we rely on Electron's native backgroundMaterial ('acrylic') and we just modify the CSS
+    // background alpha to allow the native OS blur to shine through behind the DOM.
+    const root = window.document.documentElement;
+    if (opacity < 1) {
+      // Use proper HSL syntax for the Tailwind CSS variables
+      root.style.backgroundColor = `hsl(var(--background) / ${opacity})`;
+      root.style.backdropFilter = 'blur(16px)'; // Fallback for browsers
+    } else {
+      root.style.backgroundColor = ''; 
+      root.style.backdropFilter = '';
     }
   }, [opacity]);
 

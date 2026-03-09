@@ -53,12 +53,14 @@ export function TitleBar({ onSettingsClick }: TitleBarProps) {
         <button
           onClick={handlePin}
           className={cn(
-            "flex h-full items-center justify-center px-3 hover:bg-accent hover:text-accent-foreground transition-colors",
-            isPinned && "text-primary"
+            "flex h-full items-center justify-center px-3 transition-colors",
+            isPinned 
+              ? "bg-primary/15 text-primary hover:bg-primary/25" 
+              : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
           )}
-          title="Always on top"
+          title={isPinned ? "Unpin from top" : "Always on top"}
         >
-          <Pin size={16} />
+          <Pin size={16} className={cn(isPinned && "fill-current")} />
         </button>
         <button
           onClick={onSettingsClick}
