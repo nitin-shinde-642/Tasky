@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, dialog, Tray, Menu, nativeImage } from 'electron'
+import { app, BrowserWindow, ipcMain, dialog, Tray, Menu, nativeImage, shell, clipboard } from 'electron'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -65,6 +65,14 @@ function createWindow() {
     }
     return false
   })
+
+  // Open links in external OS browser unconditionally
+  win.webContents.setWindowOpenHandler(({ url }) => {
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      shell.openExternal(url);
+    }
+    return { action: 'deny' };
+  });
 }
 
 let isQuitting = false
@@ -82,6 +90,10 @@ ipcMain.handle('store-get', (event, key) => {
 
 ipcMain.on('store-set', (event, key, val) => {
   store.set(key, val);
+});
+
+ipcMain.on('open-external', (event, url) => {
+  shell.openExternal(url);
 });
 
 // Phase 2: Folder Filesystem operations

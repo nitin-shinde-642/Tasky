@@ -94,6 +94,7 @@ export const TaskProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const deleteTask = useCallback((id: string) => {
+    let toastShown = false;
     setTasks((prev) => {
       const taskIndex = prev.findIndex((t) => t.id === id);
       if (taskIndex === -1) return prev;
@@ -102,18 +103,21 @@ export const TaskProvider = ({ children }: { children: ReactNode }) => {
       const newTasks = [...prev];
       newTasks.splice(taskIndex, 1);
       
-      toast('Task deleted', {
-        action: {
-          label: 'Undo',
-          onClick: () => {
-            setTasks((current) => {
-              const restored = [...current];
-              restored.splice(taskIndex, 0, taskToDelete);
-              return restored;
-            });
+      if (!toastShown) {
+        toastShown = true;
+        toast('Task deleted', {
+          action: {
+            label: 'Undo',
+            onClick: () => {
+              setTasks((current) => {
+                const restored = [...current];
+                restored.splice(taskIndex, 0, taskToDelete);
+                return restored;
+              });
+            }
           }
-        }
-      });
+        });
+      }
       
       return newTasks;
     });

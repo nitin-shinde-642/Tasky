@@ -11,6 +11,7 @@ import { useState, useEffect } from 'react';
 import { ArchivalProvider } from '@/context/ArchivalContext';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { Toaster } from 'sonner';
+import { RichTextEditor } from '@/components/RichTextEditor';
 
 function AppContent() {
   const { addTask } = useTasks();
@@ -19,8 +20,8 @@ function AppContent() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
 
-  const handleAddTask = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleAddTask = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     if (!newTaskTitle.trim()) return;
     addTask(newTaskTitle, newTaskDesc);
     setNewTaskTitle('');
@@ -29,6 +30,9 @@ function AppContent() {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      const activeTagName = document.activeElement?.tagName.toLowerCase();
+      const isInputFocused = activeTagName === 'input' || activeTagName === 'textarea' || (document.activeElement as HTMLElement)?.isContentEditable;
+
       if (e.ctrlKey) {
         if (e.key.toLowerCase() === 'f') {
           e.preventDefault();
@@ -37,6 +41,10 @@ function AppContent() {
           e.preventDefault();
           document.getElementById('new-task-title')?.focus();
         }
+      } else if (!isInputFocused && !e.metaKey && !e.altKey && e.key.length === 1) {
+        // If the user starts typing anywhere else in the app, immediately focus the Add Task input
+        // so the typed character drops directly into it natively.
+        document.getElementById('new-task-title')?.focus();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -82,13 +90,13 @@ function AppContent() {
             </button>
           </div>
           {newTaskTitle.trim() && (
-            <input
-              type="text"
-              placeholder="Description (optional)"
-              value={newTaskDesc}
-              onChange={(e) => setNewTaskDesc(e.target.value)}
-              className="w-full bg-transparent border-none focus:ring-0 px-2 text-xs text-muted-foreground outline-none"
-            />
+            <div className="w-full pt-1 px-1 pb-1">
+              <RichTextEditor
+                 content={newTaskDesc}
+                 onChange={setNewTaskDesc}
+                 onSubmit={handleAddTask}
+              />
+            </div>
           )}
         </form>
       </main>

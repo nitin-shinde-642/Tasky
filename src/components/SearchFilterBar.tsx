@@ -46,7 +46,7 @@ export function SearchFilterBar({ onHistoryClick }: { onHistoryClick?: () => voi
         </div>
         
         <div className="flex items-center gap-2 shrink-0 ml-2">
-          {tasks.some(t => t.completed) && filterOption === 'Completed' && (
+          {tasks.some(t => t.completed) && filterOption === 'All' && (
             <button 
               onClick={clearCompletedTasks}
               className="p-1.5 hover:bg-destructive/10 text-destructive/80 hover:text-destructive rounded-md border border-transparent hover:border-destructive/20 transition-all shadow-sm"
