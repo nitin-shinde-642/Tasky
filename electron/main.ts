@@ -32,8 +32,6 @@ function createWindow() {
     minHeight: 500,
     frame: false, // Frameless window
     titleBarStyle: 'hidden',
-    backgroundColor: '#00000000',
-    backgroundMaterial: 'acrylic',
     webPreferences: {
       preload: path.join(__dirname, 'preload.mjs'),
       nodeIntegration: false,
@@ -161,6 +159,37 @@ ipcMain.handle('create-folder', (event, folderName: string) => {
   }
 });
 
+ipcMain.handle('delete-folder', (event, folderName: string, targetFolder?: string) => {
+  const baseDir = store.get('base-dir') as string | undefined || DEFAULT_BASE_DIR;
+  const sourcePath = path.join(baseDir, folderName);
+  
+  if (!fs.existsSync(sourcePath)) {
+    return { success: false, error: 'Folder not found' };
+  }
+
+  try {
+    const sourceStorageKey = `tasklyn_${folderName}_tasks`;
+    const sourceTasks = (store.get(sourceStorageKey) as Array<any>) || [];
+
+    if (targetFolder) {
+      // User opted to move tasks to another folder
+      const targetStorageKey = `tasklyn_${targetFolder}_tasks`;
+      const targetTasks = (store.get(targetStorageKey) as Array<any>) || [];
+      store.set(targetStorageKey, [...targetTasks, ...sourceTasks]);
+    }
+    
+    // Clear the source tasks from the store
+    store.delete(sourceStorageKey);
+    
+    // Attempt physical deletion
+    fs.rmSync(sourcePath, { recursive: true, force: true });
+    
+    return { success: true };
+  } catch (e: any) {
+    return { success: false, error: e.message };
+  }
+});
+
 ipcMain.handle('show-open-dialog', async () => {
   if (!win) return null;
   const result = await dialog.showOpenDialog(win, {
@@ -171,6 +200,55 @@ ipcMain.handle('show-open-dialog', async () => {
     return null;
   }
   return result.filePaths[0];
+});
+
+ipcMain.handle('export-data', async () => {
+  if (!win) return { success: false, error: 'Window not initialized' };
+  try {
+    const result = await dialog.showSaveDialog(win, {
+      title: 'Export TaskLyn Data',
+      defaultPath: 'tasklyn-backup.json',
+      filters: [{ name: 'JSON Files', extensions: ['json'] }]
+    });
+    
+    if (result.canceled || !result.filePath) return { success: false, canceled: true };
+    
+    // Get all data from store
+    const allData = store.store;
+    fs.writeFileSync(result.filePath, JSON.stringify(allData, null, 2), 'utf-8');
+    return { success: true };
+  } catch (e: any) {
+    return { success: false, error: e.message };
+  }
+});
+
+ipcMain.handle('import-data', async () => {
+  if (!win) return { success: false, error: 'Window not initialized' };
+  try {
+    const result = await dialog.showOpenDialog(win, {
+      title: 'Import TaskLyn Data',
+      filters: [{ name: 'JSON Files', extensions: ['json'] }],
+      properties: ['openFile']
+    });
+    
+    if (result.canceled || result.filePaths.length === 0) return { success: false, canceled: true };
+    
+    const fileContent = fs.readFileSync(result.filePaths[0], 'utf-8');
+    const parsedData = JSON.parse(fileContent);
+    
+    if (typeof parsedData !== 'object' || parsedData === null) {
+      throw new Error('Invalid backup format');
+    }
+    
+    // Overwrite the store
+    Object.keys(parsedData).forEach(key => {
+      store.set(key, parsedData[key]);
+    });
+    
+    return { success: true };
+  } catch (e: any) {
+    return { success: false, error: e.message };
+  }
 });
 
 // Phase 3: Archival Engine
@@ -248,11 +326,7 @@ ipcMain.on('set-auto-start', (event, enable: boolean) => {
 });
 
 // Appearance Integration
-ipcMain.on('set-window-opacity', (event, opacity: number) => {
-  if (win) {
-    win.setOpacity(opacity);
-  }
-});
+// Window opacity and acrylic settings were removed by request.
 
 // Quit when all windows are closed, except on macOS. There, it's common
 // for applications and their menu bar to stay active until the user quits

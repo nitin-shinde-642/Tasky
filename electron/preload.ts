@@ -39,7 +39,10 @@ contextBridge.exposeInMainWorld('fsAPI', {
   createFolder: (folderName: string) => ipcRenderer.invoke('create-folder', folderName),
   showOpenDialog: () => ipcRenderer.invoke('show-open-dialog'),
   archiveDay: (dateString: string) => ipcRenderer.invoke('archive-day', dateString),
-  readArchive: (folder: string, dateString: string) => ipcRenderer.invoke('read-archive', folder, dateString)
+  readArchive: (folder: string, dateString: string) => ipcRenderer.invoke('read-archive', folder, dateString),
+  deleteFolder: (folderName: string, targetFolder?: string) => ipcRenderer.invoke('delete-folder', folderName, targetFolder),
+  exportData: () => ipcRenderer.invoke('export-data'),
+  importData: () => ipcRenderer.invoke('import-data')
 })
 
 contextBridge.exposeInMainWorld('systemAPI', {

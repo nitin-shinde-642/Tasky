@@ -6,10 +6,11 @@ import { TaskList } from '@/components/TaskList';
 import { Sidebar } from '@/components/Sidebar';
 import { SettingsView } from '@/components/SettingsModal';
 import { HistoryModal } from '@/components/HistoryModal';
-import { Plus, History } from 'lucide-react';
-import { useState } from 'react';
+import { Plus } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import { ArchivalProvider } from '@/context/ArchivalContext';
 import { ThemeProvider } from '@/components/ThemeProvider';
+import { Toaster } from 'sonner';
 
 function AppContent() {
   const { addTask } = useTasks();
@@ -26,6 +27,22 @@ function AppContent() {
     setNewTaskDesc('');
   };
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.ctrlKey) {
+        if (e.key.toLowerCase() === 'f') {
+          e.preventDefault();
+          document.getElementById('search-input')?.focus();
+        } else if (e.key.toLowerCase() === 'n') {
+          e.preventDefault();
+          document.getElementById('new-task-title')?.focus();
+        }
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   return (
     <div className="flex flex-col h-screen w-screen overflow-hidden bg-background text-foreground transition-colors duration-300">
       <TitleBar onSettingsClick={() => setIsSettingsOpen(true)} />
@@ -36,17 +53,8 @@ function AppContent() {
         <SettingsView isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
       ) : (
         <main className="flex-1 flex flex-col p-4 overflow-hidden max-w-lg mx-auto w-full relative">
-        <div className="flex items-center justify-between mb-2">
-          <SearchFilterBar />
-          <div className="flex gap-1 ml-2">
-            <button 
-              onClick={() => setIsHistoryOpen(true)}
-              className="p-2 hover:bg-muted text-muted-foreground rounded-lg border shadow-sm transition-colors"
-              title="View History"
-            >
-              <History size={16} />
-            </button>
-          </div>
+        <div className="mb-2 w-full">
+          <SearchFilterBar onHistoryClick={() => setIsHistoryOpen(true)} />
         </div>
         <TaskList />
         
@@ -57,6 +65,7 @@ function AppContent() {
         >
           <div className="flex items-center gap-2">
             <input
+              id="new-task-title"
               type="text"
               placeholder="What needs to be done?"
               value={newTaskTitle}
@@ -96,6 +105,7 @@ function App() {
         <TaskProvider>
           <ArchivalProvider>
             <AppContent />
+            <Toaster position="bottom-right" />
           </ArchivalProvider>
         </TaskProvider>
       </FolderProvider>

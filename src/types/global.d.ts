@@ -18,6 +18,9 @@ export interface IFsAPI {
   showOpenDialog: () => Promise<string | null>;
   archiveDay: (dateString: string) => Promise<{ success: boolean; stats?: { archived: number; pending: number }; error?: string }>;
   readArchive: (folder: string, dateString: string) => Promise<{ success: boolean; content?: string | null; error?: string }>;
+  deleteFolder: (folderName: string, targetFolder?: string) => Promise<{ success: boolean; error?: string }>;
+  exportData: () => Promise<{ success: boolean; canceled?: boolean; error?: string }>;
+  importData: () => Promise<{ success: boolean; canceled?: boolean; error?: string }>;
 }
 
 export interface ISystemAPI {

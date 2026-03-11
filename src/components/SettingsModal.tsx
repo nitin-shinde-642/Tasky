@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 // Removed framer-motion since this is now a standard view
-import { X, Save, FolderOpen, Loader2, Settings, Power, Palette, Moon, Sun, Monitor, Check } from 'lucide-react';
+import { X, Save, FolderOpen, Loader2, Settings, Power, Palette, Moon, Sun, Monitor, HardDriveDownload, HardDriveUpload } from 'lucide-react';
 import { useFolders } from '@/context/FolderContext';
 import { useTheme } from '@/components/ThemeProvider';
+import { toast } from 'sonner';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -11,7 +12,7 @@ interface SettingsModalProps {
 
 export function SettingsView({ isOpen, onClose }: SettingsModalProps) {
   const { baseDir, updateBaseDir } = useFolders();
-  const { theme, setTheme, accent, setAccent, opacity, setOpacity } = useTheme();
+  const { theme, setTheme } = useTheme();
   const [newDir, setNewDir] = useState(baseDir);
   const [autoStart, setAutoStart] = useState(false);
   const [status, setStatus] = useState<'idle' | 'saving' | 'success' | 'error'>('idle');
@@ -60,6 +61,29 @@ export function SettingsView({ isOpen, onClose }: SettingsModalProps) {
     }
   };
 
+  const handleExport = async () => {
+    if (!window.fsAPI) return;
+    const res = await window.fsAPI.exportData();
+    if (res.success) {
+      toast.success('Data exported successfully');
+    } else if (!res.canceled) {
+      toast.error(res.error || 'Failed to export data');
+    }
+  };
+
+  const handleImport = async () => {
+    if (!window.fsAPI) return;
+    const res = await window.fsAPI.importData();
+    if (res.success) {
+      toast.success('Data imported successfully. Reloading...', { duration: 2000 });
+      setTimeout(() => {
+        window.location.reload();
+      }, 2000);
+    } else if (!res.canceled) {
+      toast.error(res.error || 'Failed to import data');
+    }
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -100,51 +124,6 @@ export function SettingsView({ isOpen, onClose }: SettingsModalProps) {
                 ))}
               </div>
             </div>
-
-            {/* Accent Color Selection */}
-            <div className="space-y-3">
-              <label className="text-sm font-medium text-muted-foreground">Accent Color</label>
-              <div className="flex flex-wrap gap-3">
-                {(["zinc", "red", "rose", "orange", "green", "blue", "yellow", "violet"] as const).map((colorName) => (
-                  <button
-                    key={colorName}
-                    type="button"
-                    onClick={() => setAccent(colorName)}
-                    className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-transform shadow-sm ${accent === colorName ? 'border-foreground scale-110' : 'border-transparent hover:scale-105'}`}
-                    style={{
-                      backgroundColor: 
-                        colorName === 'zinc' ? '#3f3f46' :
-                        colorName === 'red' ? '#ef4444' :
-                        colorName === 'rose' ? '#f43f5e' :
-                        colorName === 'orange' ? '#f97316' :
-                        colorName === 'green' ? '#22c55e' :
-                        colorName === 'blue' ? '#3b82f6' :
-                        colorName === 'yellow' ? '#eab308' :
-                        '#8b5cf6'
-                    }}
-                  >
-                     {accent === colorName && <Check size={16} className="text-white drop-shadow-md" />}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Window Transparency Slider */}
-            <div className="space-y-3 pt-4 border-t border-border/50 max-w-sm">
-              <div className="flex justify-between items-center">
-                <label className="text-sm font-medium text-muted-foreground">Window Transparency</label>
-                <span className="text-sm text-foreground bg-muted px-2 py-0.5 rounded-md font-mono border">{Math.round(opacity * 100)}%</span>
-              </div>
-              <input
-                type="range"
-                min="0.4"
-                max="1"
-                step="0.05"
-                value={opacity}
-                onChange={(e) => setOpacity(parseFloat(e.target.value))}
-                className="w-full h-2.5 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
-              />
-            </div>
           </div>
 
           <div className="space-y-5 pt-6 border-t">
@@ -168,7 +147,7 @@ export function SettingsView({ isOpen, onClose }: SettingsModalProps) {
                  <button
                   type="button"
                   onClick={() => setAutoStart(!autoStart)}
-                  className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center justify-center rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50 ${autoStart ? 'bg-primary' : 'bg-input'}`}
+                  className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50 ${autoStart ? 'bg-primary' : 'bg-input'}`}
                 >
                   <span
                     className={`pointer-events-none block h-5 w-5 rounded-full bg-background ring-0 transition-transform shadow-sm ${autoStart ? 'translate-x-5' : 'translate-x-0'}`}
@@ -217,6 +196,48 @@ export function SettingsView({ isOpen, onClose }: SettingsModalProps) {
           </div>
 
           </div>
+
+            {/* Data Management Section */}
+            <div className="pt-2">
+              <h3 className="text-base font-semibold flex items-center gap-2 border-b pb-2">
+                <HardDriveDownload className="w-5 h-5 text-muted-foreground" />
+                Data Management
+              </h3>
+              
+              <div className="space-y-3 mt-4">
+                <div className="flex items-center justify-between p-3 rounded-lg border bg-card/50">
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-sm font-medium flex items-center gap-2">
+                      <HardDriveDownload size={16} className="text-muted-foreground" /> Export Data
+                    </span>
+                    <span className="text-xs text-muted-foreground max-w-[200px]">Create a backup of all tasks and settings</span>
+                  </div>
+                  <button 
+                    type="button"
+                    onClick={handleExport}
+                    className="px-3 py-1.5 text-xs font-medium bg-secondary text-secondary-foreground hover:bg-secondary/80 rounded-md transition-colors shadow-sm"
+                  >
+                    Export...
+                  </button>
+                </div>
+                
+                <div className="flex items-center justify-between p-3 rounded-lg border bg-card/50">
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-sm font-medium flex items-center gap-2">
+                      <HardDriveUpload size={16} className="text-muted-foreground" /> Import Data
+                    </span>
+                    <span className="text-xs text-muted-foreground max-w-[200px]">Restore from a previous backup file</span>
+                  </div>
+                  <button 
+                    type="button"
+                    onClick={handleImport}
+                    className="px-3 py-1.5 text-xs font-medium bg-secondary text-secondary-foreground hover:bg-secondary/80 rounded-md transition-colors shadow-sm"
+                  >
+                    Import...
+                  </button>
+                </div>
+              </div>
+            </div>
 
           {message && (
             <div className={`p-3 rounded-lg border text-sm font-medium max-w-md ${status === 'error' ? 'bg-destructive/10 text-destructive border-destructive/20' : 'bg-primary/10 text-primary border-primary/20'}`}>

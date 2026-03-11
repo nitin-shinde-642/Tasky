@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Calendar as CalendarIcon } from 'lucide-react';
 import { useFolders } from '@/context/FolderContext';
 import { format, subDays } from 'date-fns';
-import { Calendar } from '@/components/ui/calendar';
 
 interface HistoryModalProps {
   isOpen: boolean;
@@ -57,25 +56,25 @@ export function HistoryModal({ isOpen, onClose }: HistoryModalProps) {
             className="relative w-full max-w-2xl h-[80vh] flex flex-col overflow-hidden rounded-xl border bg-card shadow-2xl z-10"
           >
             <div className="flex items-center justify-between p-4 border-b">
-              <h2 className="text-lg font-semibold flex items-center gap-2">
-                <Calendar className="w-5 h-5 text-primary" />
-                History Log for '{activeFolder}'
+              <h2 className="text-lg font-semibold flex items-center gap-2 truncate pr-4">
+                <CalendarIcon className="w-5 h-5 text-primary shrink-0" />
+                <span className="truncate">History Log for '{activeFolder}'</span>
               </h2>
-              <button onClick={onClose} className="rounded-md p-1 hover:bg-muted text-muted-foreground transition-colors">
+              <button onClick={onClose} className="shrink-0 flex items-center justify-center rounded-md p-1.5 hover:bg-muted text-muted-foreground transition-colors border shadow-sm">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <div className="flex flex-1 overflow-hidden">
-              {/* Sidebar Calendar Select */}
               <div className="w-auto border-r bg-muted/10 p-4 hidden md:block">
-                <Calendar
-                  mode="single"
-                  selected={selectedDate}
-                  onSelect={(date) => date && setSelectedDate(date)}
-                  disabled={(date) => date > new Date()}
-                  initialFocus
-                  className="rounded-md border bg-background shadow"
+                <input
+                  type="date"
+                  value={format(selectedDate, 'yyyy-MM-dd')}
+                  max={format(new Date(), 'yyyy-MM-dd')}
+                  onChange={(e) => {
+                    if (e.target.value) setSelectedDate(new Date(e.target.value));
+                  }}
+                  className="bg-background border rounded-md p-2 text-sm text-foreground focus:ring-2 focus:ring-primary w-full shadow-sm"
                 />
               </div>
 
@@ -83,12 +82,14 @@ export function HistoryModal({ isOpen, onClose }: HistoryModalProps) {
               <div className="flex-1 p-6 overflow-y-auto bg-background/50 relative">
                 {/* Mobile drop down for dates */}
                 <div className="md:hidden justify-center flex mb-6">
-                  <Calendar
-                    mode="single"
-                    selected={selectedDate}
-                    onSelect={(date) => date && setSelectedDate(date)}
-                    disabled={(date) => date > new Date()}
-                    className="rounded-md border bg-background shadow"
+                  <input
+                    type="date"
+                    value={format(selectedDate, 'yyyy-MM-dd')}
+                    max={format(new Date(), 'yyyy-MM-dd')}
+                    onChange={(e) => {
+                      if (e.target.value) setSelectedDate(new Date(e.target.value));
+                    }}
+                    className="bg-background border rounded-md p-2 text-sm text-foreground focus:ring-2 focus:ring-primary w-full shadow-sm"
                   />
                 </div>
 
