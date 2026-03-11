@@ -12,6 +12,7 @@ import { ArchivalProvider } from '@/context/ArchivalContext';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { Toaster } from 'sonner';
 import { RichTextEditor } from '@/components/RichTextEditor';
+import { motion, AnimatePresence } from 'framer-motion';
 
 function AppContent() {
   const { addTask } = useTasks();
@@ -89,15 +90,25 @@ function AppContent() {
               <Plus size={18} />
             </button>
           </div>
-          {newTaskTitle.trim() && (
-            <div className="w-full pt-1 px-1 pb-1">
-              <RichTextEditor
-                 content={newTaskDesc}
-                 onChange={setNewTaskDesc}
-                 onSubmit={handleAddTask}
-              />
-            </div>
-          )}
+          <AnimatePresence>
+            {newTaskTitle.trim() && (
+              <motion.div 
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.2, ease: "easeInOut" }}
+                className="w-full px-1 overflow-hidden"
+              >
+                <div className="pt-1 pb-1">
+                  <RichTextEditor
+                     content={newTaskDesc}
+                     onChange={setNewTaskDesc}
+                     onSubmit={handleAddTask}
+                  />
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </form>
       </main>
       )}

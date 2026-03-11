@@ -11,7 +11,6 @@ interface TaskContextType {
   addTask: (title: string, description?: string) => void;
   updateTask: (id: string, updates: Partial<Task>) => void;
   deleteTask: (id: string) => void;
-  clearCompletedTasks: () => void;
   moveTask: (id: string, targetFolder: string) => Promise<boolean>;
   toggleTaskCompletion: (id: string) => void;
   reorderTasks: (startIndex: number, endIndex: number) => void;
@@ -123,11 +122,6 @@ export const TaskProvider = ({ children }: { children: ReactNode }) => {
     });
   }, []);
 
-  const clearCompletedTasks = useCallback(() => {
-    setTasks((prev) => prev.filter((t) => !t.completed));
-    toast.success('Cleared completed tasks');
-  }, []);
-
   const moveTask = useCallback(async (id: string, targetFolder: string) => {
     // Cannot move to the same folder
     if (targetFolder === activeFolder) return false;
@@ -203,7 +197,6 @@ export const TaskProvider = ({ children }: { children: ReactNode }) => {
     addTask,
     updateTask,
     deleteTask,
-    clearCompletedTasks,
     moveTask,
     toggleTaskCompletion,
     reorderTasks,
@@ -217,7 +210,6 @@ export const TaskProvider = ({ children }: { children: ReactNode }) => {
     addTask, 
     updateTask, 
     deleteTask, 
-    clearCompletedTasks,
     moveTask,
     toggleTaskCompletion, 
     reorderTasks

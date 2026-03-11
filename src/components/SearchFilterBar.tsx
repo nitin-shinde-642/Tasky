@@ -5,12 +5,12 @@ import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import { useDebounce } from '@/hooks/use-debounce';
-import { History, Eraser } from 'lucide-react';
+import { History } from 'lucide-react';
 
 const FILTERS: FilterOption[] = ['All', 'Pending', 'Completed'];
 
 export function SearchFilterBar({ onHistoryClick }: { onHistoryClick?: () => void }) {
-  const { tasks, searchQuery, setSearchQuery, filterOption, setFilterOption, clearCompletedTasks } = useTasks();
+  const { searchQuery, setSearchQuery, filterOption, setFilterOption } = useTasks();
   const [localSearch, setLocalSearch] = useState(searchQuery);
   const debouncedSearch = useDebounce(localSearch, 300);
 
@@ -46,15 +46,7 @@ export function SearchFilterBar({ onHistoryClick }: { onHistoryClick?: () => voi
         </div>
         
         <div className="flex items-center gap-2 shrink-0 ml-2">
-          {tasks.some(t => t.completed) && filterOption === 'All' && (
-            <button 
-              onClick={clearCompletedTasks}
-              className="p-1.5 hover:bg-destructive/10 text-destructive/80 hover:text-destructive rounded-md border border-transparent hover:border-destructive/20 transition-all shadow-sm"
-              title="Clear Completed Tasks"
-            >
-              <Eraser size={16} />
-            </button>
-          )}
+          {/* Eraser button removed per user request */}
           
           {onHistoryClick && (
             <button 
