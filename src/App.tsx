@@ -8,15 +8,24 @@ import { SettingsView } from '@/components/SettingsModal';
 import { HistoryModal } from '@/components/HistoryModal';
 import { Plus } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import { ArchivalProvider } from '@/context/ArchivalContext';
+import { ArchivalProvider, useArchival } from '@/context/ArchivalContext';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { Toaster } from 'sonner';
 import { RichTextEditor } from '@/components/RichTextEditor';
 import { motion, AnimatePresence } from 'framer-motion';
+import { DailySummaryModal } from '@/components/SummaryModal';
 
 function AppContent() {
   const { addTask } = useTasks();
+  const { summaryStats } = useArchival();
+  const [showSummary, setShowSummary] = useState(false);
   const [newTaskTitle, setNewTaskTitle] = useState('');
+  
+  useEffect(() => {
+    if (summaryStats) {
+      setShowSummary(true);
+    }
+  }, [summaryStats]);
   const [newTaskDesc, setNewTaskDesc] = useState('');
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
@@ -57,6 +66,13 @@ function AppContent() {
       <TitleBar onSettingsClick={() => setIsSettingsOpen(true)} />
       <Sidebar />
       <HistoryModal isOpen={isHistoryOpen} onClose={() => setIsHistoryOpen(false)} />
+      
+      {showSummary && (
+        <DailySummaryModal 
+          stats={summaryStats} 
+          onClose={() => setShowSummary(false)} 
+        />
+      )}
       
       {isSettingsOpen ? (
         <SettingsView isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />

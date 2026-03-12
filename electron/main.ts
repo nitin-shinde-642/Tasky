@@ -1,6 +1,7 @@
 import { app, BrowserWindow, ipcMain, dialog, Tray, Menu, nativeImage, shell, clipboard } from 'electron'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { format } from 'date-fns'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -23,6 +24,15 @@ export const RENDERER_DIST = path.join(process.env.APP_ROOT, 'dist')
 process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL ? path.join(process.env.APP_ROOT, 'public') : RENDERER_DIST
 
 let win: BrowserWindow | null
+
+interface ArchivedTask {
+  id: string;
+  title: string;
+  description: string;
+  completed: boolean;
+  createdAt: number;
+  completedAt: number | null;
+}
 
 function createWindow() {
   win = new BrowserWindow({
@@ -166,8 +176,8 @@ ipcMain.handle('create-folder', (event, folderName: string) => {
   try {
     fs.mkdirSync(targetPath);
     return { success: true };
-  } catch (e: any) {
-    return { success: false, error: e.message };
+  } catch (e) {
+    return { success: false, error: (e as Error).message };
   }
 });
 
@@ -181,12 +191,12 @@ ipcMain.handle('delete-folder', (event, folderName: string, targetFolder?: strin
 
   try {
     const sourceStorageKey = `tasklyn_${folderName}_tasks`;
-    const sourceTasks = (store.get(sourceStorageKey) as Array<any>) || [];
+    const sourceTasks = (store.get(sourceStorageKey) as ArchivedTask[]) || [];
 
     if (targetFolder) {
       // User opted to move tasks to another folder
       const targetStorageKey = `tasklyn_${targetFolder}_tasks`;
-      const targetTasks = (store.get(targetStorageKey) as Array<any>) || [];
+      const targetTasks = (store.get(targetStorageKey) as ArchivedTask[]) || [];
       store.set(targetStorageKey, [...targetTasks, ...sourceTasks]);
     }
     
@@ -197,8 +207,8 @@ ipcMain.handle('delete-folder', (event, folderName: string, targetFolder?: strin
     fs.rmSync(sourcePath, { recursive: true, force: true });
     
     return { success: true };
-  } catch (e: any) {
-    return { success: false, error: e.message };
+  } catch (e) {
+    return { success: false, error: (e as Error).message };
   }
 });
 
@@ -229,8 +239,8 @@ ipcMain.handle('export-data', async () => {
     const allData = store.store;
     fs.writeFileSync(result.filePath, JSON.stringify(allData, null, 2), 'utf-8');
     return { success: true };
-  } catch (e: any) {
-    return { success: false, error: e.message };
+  } catch (e) {
+    return { success: false, error: (e as Error).message };
   }
 });
 
@@ -258,8 +268,8 @@ ipcMain.handle('import-data', async () => {
     });
     
     return { success: true };
-  } catch (e: any) {
-    return { success: false, error: e.message };
+  } catch (e) {
+    return { success: false, error: (e as Error).message };
   }
 });
 
@@ -268,6 +278,11 @@ ipcMain.handle('archive-day', async (event, dateString: string) => {
   // dateString like "2026-03-04"
   const baseDir = store.get('base-dir') as string | undefined || DEFAULT_BASE_DIR;
   if (!fs.existsSync(baseDir)) return { success: false, error: 'Base directory missing' };
+  
+  const date = new Date(dateString);
+  const year = date.getFullYear().toString();
+  const month = date.toLocaleString('default', { month: 'long' });
+  const day = format(date, 'dd');
   
   let totalArchived = 0;
   let totalPending = 0;
@@ -279,7 +294,7 @@ ipcMain.handle('archive-day', async (event, dateString: string) => {
       
     for (const folder of folders) {
       const storageKey = `tasklyn_${folder}_tasks`;
-      const tasks = store.get(storageKey) as Array<any>;
+      const tasks = store.get(storageKey) as ArchivedTask[];
       if (!tasks || tasks.length === 0) continue;
       
       const pending = tasks.filter(t => !t.completed);
@@ -288,40 +303,100 @@ ipcMain.handle('archive-day', async (event, dateString: string) => {
       totalArchived += completed.length;
       totalPending += pending.length;
       
-      if (completed.length > 0) {
-        // Format text file content
-        let content = `TaskLyn Archive - ${dateString}\nFolder: ${folder}\n\n`;
-        content += `=== COMPLETED TASKS (${completed.length}) ===\n`;
-        completed.forEach(t => content += `[X] ${t.title}${t.description ? `\n    ${t.description}` : ''}\n`);
-        content += `\n=== PENDING TASKS CARRIED OVER (${pending.length}) ===\n`;
-        pending.forEach(t => content += `[ ] ${t.title}${t.description ? `\n    ${t.description}` : ''}\n`);
-        
-        // Write to fs
-        const targetFile = path.join(baseDir, folder, `${dateString}.txt`);
-        fs.writeFileSync(targetFile, content, 'utf8');
-        
-        // Remove completed from store
-        store.set(storageKey, pending);
+      // Ensure target directory exists: Folder/YYYY/Month/
+      const archiveDir = path.join(baseDir, folder, year, month);
+      if (!fs.existsSync(archiveDir)) {
+        fs.mkdirSync(archiveDir, { recursive: true });
       }
+
+      // 1. Save Markdown Log
+      let mdContent = `# TaskLyn Archive - ${format(date, 'EEEE, MMMM do, yyyy')}\n`;
+      mdContent += `**Folder:** ${folder}\n\n`;
+      
+      mdContent += `## Completed Tasks (${completed.length})\n`;
+      if (completed.length > 0) {
+        completed.forEach(t => {
+          mdContent += `- [x] **${t.title}**\n`;
+          if (t.description) {
+            // Indent description properly
+            const indented = t.description.split('\n').map((line: string) => `  ${line}`).join('\n');
+            mdContent += `${indented}\n`;
+          }
+        });
+      } else {
+        mdContent += `*No tasks completed today.*\n`;
+      }
+      
+      mdContent += `\n## Carried Forward (${pending.length})\n`;
+      if (pending.length > 0) {
+        pending.forEach(t => {
+          mdContent += `- [ ] **${t.title}**\n`;
+          if (t.description) {
+            const indented = t.description.split('\n').map((line: string) => `  ${line}`).join('\n');
+            mdContent += `${indented}\n`;
+          }
+        });
+      } else {
+        mdContent += `*No pending tasks.*\n`;
+      }
+      
+      const mdPath = path.join(archiveDir, `${day}.md`);
+      fs.writeFileSync(mdPath, mdContent, 'utf8');
+
+      // 2. Save JSON Companion (for rich UI)
+      const jsonPath = path.join(archiveDir, `${day}.json`);
+      fs.writeFileSync(jsonPath, JSON.stringify({
+        date: dateString,
+        folder,
+        stats: { completed: completed.length, pending: pending.length },
+        tasks: tasks // full list for history view
+      }, null, 2), 'utf8');
+      
+      // 3. Update Store: Remove completed from store, KEEP pending
+      store.set(storageKey, pending);
     }
     return { success: true, stats: { archived: totalArchived, pending: totalPending } };
-  } catch (e: any) {
+  } catch (e) {
     console.error("Archival failed", e);
-    return { success: false, error: e.message };
+    return { success: false, error: (e as Error).message };
   }
 });
 
 ipcMain.handle('read-archive', async (event, folder: string, dateString: string) => {
   const baseDir = store.get('base-dir') as string | undefined || DEFAULT_BASE_DIR;
-  const targetFile = path.join(baseDir, folder, `${dateString}.txt`);
-  if (!fs.existsSync(targetFile)) {
-    return { success: false, content: null };
-  }
+  
+  const date = new Date(dateString);
+  const year = date.getFullYear().toString();
+  const month = date.toLocaleString('default', { month: 'long' });
+  const day = format(date, 'dd');
+  
+  const archiveDir = path.join(baseDir, folder, year, month);
+  const jsonPath = path.join(archiveDir, `${day}.json`);
+  const mdPath = path.join(archiveDir, `${day}.md`);
+
   try {
-    const content = fs.readFileSync(targetFile, 'utf8');
-    return { success: true, content };
-  } catch (e: any) {
-    return { success: false, error: e.message };
+    // Try JSON first for rich UI
+    if (fs.existsSync(jsonPath)) {
+      const content = fs.readFileSync(jsonPath, 'utf8');
+      return { success: true, type: 'json', content };
+    }
+    
+    // Fallback to Markdown
+    if (fs.existsSync(mdPath)) {
+      const content = fs.readFileSync(mdPath, 'utf8');
+      return { success: true, type: 'markdown', content };
+    }
+
+    // Legacy fallback (DD.txt in root folder)
+    const legacyPath = path.join(baseDir, folder, `${dateString}.txt`);
+    if (fs.existsSync(legacyPath)) {
+      const content = fs.readFileSync(legacyPath, 'utf8');
+      return { success: true, type: 'text', content };
+    }
+
+    return { success: false, content: null };
+  } catch (e) {
+    return { success: false, error: (e as Error).message };
   }
 });
 
