@@ -35,7 +35,7 @@ interface ArchivedTask {
 }
 
 function createWindow() {
-  win = new BrowserWindow({
+  win = new BrowserWindow({ 
     width: 550,
     height: 700,
     minWidth: 400,
@@ -47,6 +47,7 @@ function createWindow() {
       nodeIntegration: false,
       contextIsolation: true,
     },
+    icon: path.join(process.env.VITE_PUBLIC || '', 'icon.ico'),
   })
 
   if (VITE_DEV_SERVER_URL) {
@@ -437,7 +438,7 @@ app.whenReady().then(() => {
   createWindow()
 
   // Setup System Tray
-  const iconPath = path.join(process.env.VITE_PUBLIC || '', 'vite.svg');
+  const iconPath = path.join(process.env.VITE_PUBLIC || '', 'icon.ico');
   tray = new Tray(nativeImage.createFromPath(iconPath));
 
   const contextMenu = Menu.buildFromTemplate([
