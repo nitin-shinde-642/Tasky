@@ -44,7 +44,7 @@ export function HistoryModal({ isOpen, onClose }: HistoryModalProps) {
         } else {
           setLogData(null);
         }
-      } catch (e) {
+      } catch {
         setLogData(null);
       } finally {
         setLoading(false);

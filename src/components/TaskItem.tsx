@@ -81,7 +81,7 @@ export const TaskItem = memo(function TaskItem({ task, index, onToggle, onDelete
         <ContextMenu.Root onOpenChange={(open) => { if (!open) setContextLink(null) }}>
           <ContextMenu.Trigger 
             asChild
-            onContextMenu={(e: any) => {
+            onContextMenu={(e: React.MouseEvent) => {
               const target = e.target as HTMLElement;
               const link = target.closest?.('a');
               if (link) {
@@ -282,6 +282,7 @@ export const TaskItem = memo(function TaskItem({ task, index, onToggle, onDelete
     </Draggable>
 
     <TaskDetailsModal 
+       key={task.id}
        task={task} 
        isOpen={isDetailsOpen} 
        onClose={() => setIsDetailsOpen(false)} 

@@ -19,13 +19,18 @@ function AppContent() {
   const { addTask } = useTasks();
   const { summaryStats } = useArchival();
   const [showSummary, setShowSummary] = useState(false);
-  const [newTaskTitle, setNewTaskTitle] = useState('');
   
+  // Track if we've already shown the summary for the current stats to avoid re-triggering
+  const [lastShownDate, setLastShownDate] = useState<string | null>(null);
+
   useEffect(() => {
-    if (summaryStats) {
+    if (summaryStats && summaryStats.date !== lastShownDate) {
       setShowSummary(true);
+      setLastShownDate(summaryStats.date);
     }
-  }, [summaryStats]);
+  }, [summaryStats, lastShownDate]);
+
+  const [newTaskTitle, setNewTaskTitle] = useState('');
   const [newTaskDesc, setNewTaskDesc] = useState('');
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);

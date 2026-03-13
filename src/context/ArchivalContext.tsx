@@ -21,7 +21,7 @@ export const ArchivalProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const checkArchival = async () => {
       try {
-        const storedLastDate = window.store ? await window.store.get('last_archive_date') : localStorage.getItem('last_archive_date');
+        const storedLastDate = (window.store ? await window.store.get('last_archive_date') : localStorage.getItem('last_archive_date')) as string | null;
         const today = format(new Date(), 'yyyy-MM-dd');
         
         if (!storedLastDate) {
@@ -36,11 +36,15 @@ export const ArchivalProvider = ({ children }: { children: ReactNode }) => {
         // Silent automatic archive based on system time date diff
         const daysDiff = differenceInCalendarDays(new Date(), new Date(storedLastDate));
         
-        if (daysDiff > 0 && window.fsAPI?.archiveDay) {
+        if (daysDiff > 0 && window.fsAPI?.archiveDay && storedLastDate) {
           const res = await window.fsAPI.archiveDay(storedLastDate);
           
           if (res.success && res.stats) {
-            setSummaryStats({ ...res.stats, date: storedLastDate });
+            setSummaryStats({ 
+              archived: res.stats.archived, 
+              pending: res.stats.pending, 
+              date: storedLastDate 
+            });
           }
           
           if (window.store) window.store.set('last_archive_date', today);
@@ -80,6 +84,7 @@ export const ArchivalProvider = ({ children }: { children: ReactNode }) => {
   );
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useArchival = () => {
   const context = useContext(ArchivalContext);
   if (context === undefined) {

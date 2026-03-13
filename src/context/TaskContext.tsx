@@ -28,8 +28,7 @@ export const TaskProvider = ({ children }: { children: ReactNode }) => {
   const [isLoading, setIsLoading] = useState(true);
   
   const { activeFolder } = useFolders();
-
-  const getStorageKey = () => `tasklyn_${activeFolder || 'default'}_tasks`;
+  const getStorageKey = useCallback(() => `tasklyn_${activeFolder || 'default'}_tasks`, [activeFolder]);
 
   // Load on mount and folder change
   useEffect(() => {
@@ -42,7 +41,7 @@ export const TaskProvider = ({ children }: { children: ReactNode }) => {
       }
       try {
         if (window.store) {
-          const stored = await window.store.get(getStorageKey());
+          const stored = await window.store.get(getStorageKey()) as Task[] | null;
           setTasks(stored || []);
         } else {
           // Fallback for browser dev
@@ -56,7 +55,7 @@ export const TaskProvider = ({ children }: { children: ReactNode }) => {
       }
     }
     loadTasks();
-  }, [activeFolder]);
+  }, [activeFolder, getStorageKey]);
 
   // Save on change
   useEffect(() => {
@@ -70,7 +69,7 @@ export const TaskProvider = ({ children }: { children: ReactNode }) => {
     } catch (e) {
       console.error("Failed to save tasks", e);
     }
-  }, [tasks, activeFolder]);
+  }, [tasks, activeFolder, getStorageKey]);
 
   const addTask = useCallback((title: string, description: string = '') => {
     if (!title.trim()) return;
@@ -139,7 +138,7 @@ export const TaskProvider = ({ children }: { children: ReactNode }) => {
       const moveAsync = async () => {
         try {
           const targetStorageKey = `tasklyn_${targetFolder}_tasks`;
-          const stored = window.store ? await window.store.get(targetStorageKey) : JSON.parse(localStorage.getItem(targetStorageKey) || '[]');
+          const stored = (window.store ? await window.store.get(targetStorageKey) : JSON.parse(localStorage.getItem(targetStorageKey) || '[]')) as Task[] | null;
           const targetTasks = Array.isArray(stored) ? stored : [];
           targetTasks.unshift(taskToMove); // Add to top of target folder
           
@@ -222,6 +221,7 @@ export const TaskProvider = ({ children }: { children: ReactNode }) => {
   );
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useTasks = () => {
   const context = useContext(TaskContext);
   if (context === undefined) {

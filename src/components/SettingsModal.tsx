@@ -19,15 +19,10 @@ export function SettingsView({ isOpen, onClose }: SettingsModalProps) {
   const [message, setMessage] = useState('');
 
   useEffect(() => {
-    if (isOpen) {
-      setNewDir(baseDir);
-      setStatus('idle');
-      setMessage('');
-      if (window.systemAPI?.getAutoStart) {
-        window.systemAPI.getAutoStart().then(setAutoStart);
-      }
+    if (window.systemAPI?.getAutoStart) {
+      window.systemAPI.getAutoStart().then(setAutoStart);
     }
-  }, [isOpen, baseDir]);
+  }, []);
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,7 +50,7 @@ export function SettingsView({ isOpen, onClose }: SettingsModalProps) {
         setStatus('error');
         setMessage('Failed to update base directory. Ensure the path is valid.');
       }
-    } catch (error) {
+    } catch {
       setStatus('error');
       setMessage('An unexpected error occurred.');
     }

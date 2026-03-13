@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, dialog, Tray, Menu, nativeImage, shell, clipboard } from 'electron'
+import { app, BrowserWindow, ipcMain, dialog, Tray, Menu, nativeImage, shell } from 'electron'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { format } from 'date-fns'
@@ -47,7 +47,7 @@ function createWindow() {
       nodeIntegration: false,
       contextIsolation: true,
     },
-    icon: path.join(process.env.VITE_PUBLIC || '', 'icon.ico'),
+    icon: path.join(process.env.VITE_PUBLIC || '', 'icon.png'),
   })
 
   if (VITE_DEV_SERVER_URL) {
@@ -162,12 +162,16 @@ ipcMain.handle('create-folder', (event, folderName: string) => {
   if (!fs.existsSync(baseDir)) {
     fs.mkdirSync(baseDir, { recursive: true });
   }
-  
-  // Validate folder name against illegal Windows characters
-  const illegalChars = /[<>:"/\\|?*\x00-\x1F]/;
+  // Validate folder name
   const cleanName = folderName.trim();
-  if (!cleanName || illegalChars.test(cleanName)) {
-    return { success: false, error: 'Invalid folder name' };
+  if (!cleanName) {
+    return { success: false, error: 'Folder name cannot be empty' };
+  }
+  
+  // Illegal Windows characters: < > : " / \ | ? * and control chars (0-31)
+  const illegalChars = /[<>:"/\\|?*\u0000-\u001F]/;
+  if (illegalChars.test(cleanName)) {
+    return { success: false, error: 'Folder name contains invalid characters' };
   }
 
   const targetPath = path.join(baseDir, cleanName);
@@ -438,7 +442,7 @@ app.whenReady().then(() => {
   createWindow()
 
   // Setup System Tray
-  const iconPath = path.join(process.env.VITE_PUBLIC || '', 'icon.ico');
+  const iconPath = path.join(process.env.VITE_PUBLIC || '', 'icon.png');
   tray = new Tray(nativeImage.createFromPath(iconPath));
 
   const contextMenu = Menu.buildFromTemplate([

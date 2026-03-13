@@ -20,19 +20,15 @@ interface TaskDetailsModalProps {
 
 export function TaskDetailsModal({ task, isOpen, onClose, onDelete, onToggle, onUpdate }: TaskDetailsModalProps) {
   const [isEditing, setIsEditing] = useState(false);
-  const [editTitle, setEditTitle] = useState('');
-  const [editDesc, setEditDesc] = useState('');
+  const [editTitle, setEditTitle] = useState(task?.title || '');
+  const [editDesc, setEditDesc] = useState(task?.description || '');
   const [contextLink, setContextLink] = useState<{ url: string, text: string } | null>(null);
   const titleInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (task) {
-      setEditTitle(task.title);
-      setEditDesc(task.description || '');
-    }
-    // Reset editing state when modal opens/closes or task changes
+    // Reset editing state when modal opens
     setIsEditing(false);
-  }, [task, isOpen]);
+  }, [isOpen]);
 
   useEffect(() => {
     if (isEditing && titleInputRef.current) {
@@ -196,7 +192,7 @@ export function TaskDetailsModal({ task, isOpen, onClose, onDelete, onToggle, on
                     <ContextMenu.Root onOpenChange={(open) => { if (!open) setContextLink(null) }}>
                       <ContextMenu.Trigger 
                         asChild
-                        onContextMenu={(e: any) => {
+                        onContextMenu={(e: React.MouseEvent) => {
                           const target = e.target as HTMLElement;
                           const link = target.closest?.('a');
                           if (link) {

@@ -29,7 +29,7 @@ contextBridge.exposeInMainWorld('windowControls', {
 
 contextBridge.exposeInMainWorld('store', {
   get: (key: string) => ipcRenderer.invoke('store-get', key),
-  set: (key: string, val: any) => ipcRenderer.send('store-set', key, val),
+  set: (key: string, val: unknown) => ipcRenderer.send('store-set', key, val),
 })
 
 contextBridge.exposeInMainWorld('fsAPI', {

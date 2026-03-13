@@ -35,10 +35,10 @@ export function Sidebar() {
   const initiateDelete = async (folder: string, e: React.MouseEvent) => {
     e.stopPropagation();
     
-    // Check if empty via store tasks check
-    try {
-      const tasks = await window.store.get(`tasklyn_${folder}_tasks`) || [];
-      if (tasks.length === 0) {
+      try {
+        const tasksResponse = await window.store.get(`tasklyn_${folder}_tasks`);
+        const tasks = Array.isArray(tasksResponse) ? tasksResponse : [];
+        if (tasks.length === 0) {
         // Delete instantly
         await deleteFolder(folder);
       } else {

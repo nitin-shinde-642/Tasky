@@ -44,7 +44,7 @@ export const FolderProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     refreshFolders();
-  }, []);
+  }, [refreshFolders]);
 
   const setActiveFolder = useCallback((folder: string) => {
     setActiveFolderState(folder);
@@ -120,6 +120,7 @@ export const FolderProvider = ({ children }: { children: ReactNode }) => {
   );
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useFolders = () => {
   const context = useContext(FolderContext);
   if (context === undefined) {

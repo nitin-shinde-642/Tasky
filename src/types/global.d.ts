@@ -6,8 +6,8 @@ export interface IWindowControls {
 }
 
 export interface IStore {
-  get: (key: string) => Promise<any>;
-  set: (key: string, val: any) => void;
+  get: (key: string) => Promise<unknown>;
+  set: (key: string, val: unknown) => void;
 }
 
 export interface IFsAPI {
