@@ -21,6 +21,7 @@ export interface IFsAPI {
   deleteFolder: (folderName: string, targetFolder?: string) => Promise<{ success: boolean; error?: string }>;
   exportData: () => Promise<{ success: boolean; canceled?: boolean; error?: string }>;
   importData: () => Promise<{ success: boolean; canceled?: boolean; error?: string }>;
+  archiveDay: (dateString: string) => Promise<{ success: boolean; stats?: { archived: number; pending: number }; error?: string }>;
 }
 
 export interface ISystemAPI {

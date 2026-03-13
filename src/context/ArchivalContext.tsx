@@ -38,15 +38,16 @@ export const ArchivalProvider = ({ children }: { children: ReactNode }) => {
         const storedDateObj = new Date(y, m - 1, d);
         const daysDiff = differenceInCalendarDays(new Date(), storedDateObj);
         
-        if (daysDiff > 0 && window.fsAPI?.archiveDay && storedLastDate) {
+        if (daysDiff > 0 && window.fsAPI?.archiveDay) {
           console.log(`[Archival] Triggering archive for ${storedLastDate} (Days diff: ${daysDiff})`);
           const res = await window.fsAPI.archiveDay(storedLastDate);
           
           if (res.success && res.stats) {
-            console.log(`[Archival] Success: ${res.stats.archived} archived, ${res.stats.pending} pending.`);
+            const stats = res.stats;
+            console.log(`[Archival] Success: ${stats.archived} archived, ${stats.pending} pending.`);
             setSummaryStats({ 
-              archived: res.stats.archived, 
-              pending: res.stats.pending, 
+              archived: stats.archived, 
+              pending: stats.pending, 
               date: storedLastDate 
             });
             
@@ -58,7 +59,7 @@ export const ArchivalProvider = ({ children }: { children: ReactNode }) => {
             // Silently reload to refresh task view
             window.location.reload(); 
           } else {
-            console.error(`[Archival] Failed: ${res.error}`);
+            console.error(`[Archival] Failed: ${res?.error}`);
           }
         } else if (daysDiff < 0) {
           console.warn(`[Archival] Future date detected (${storedLastDate}). Resetting to ${today}.`);
