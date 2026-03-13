@@ -21,8 +21,12 @@ export function RichTextEditor({ content, onChange, onSubmit, className }: RichT
       }),
       Link.configure({
         openOnClick: false,
+        linkOnPaste: true,
+        autolink: true,
         HTMLAttributes: {
           class: 'text-primary underline underline-offset-4 cursor-pointer',
+          target: '_blank',
+          rel: 'noopener noreferrer',
         },
       }),
     ],
@@ -50,21 +54,32 @@ export function RichTextEditor({ content, onChange, onSubmit, className }: RichT
     if (!editor) return;
 
     const previousUrl = editor.getAttributes('link').href;
-    const url = window.prompt('URL', previousUrl);
+    let url = window.prompt('Enter URL', previousUrl);
 
-    // cancelled
-    if (url === null) {
-      return;
-    }
+    // Cancelled
+    if (url === null) return;
 
-    // empty
+    // Remove link if empty
     if (url === '') {
       editor.chain().focus().extendMarkRange('link').unsetLink().run();
       return;
     }
 
-    // update link
-    editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
+    // Auto-prepend https if missing protocol
+    if (!/^https?:\/\//i.test(url) && !/^mailto:/i.test(url) && !url.startsWith('#')) {
+      url = `https://${url}`;
+    }
+
+    try {
+      // If no text is selected, insert the URL as text first
+      if (editor.state.selection.empty) {
+        editor.chain().focus().insertContent(url).extendMarkRange('link').setLink({ href: url }).run();
+      } else {
+        editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
+      }
+    } catch (e) {
+      console.error('Failed to set link', e);
+    }
   }, [editor]);
 
   if (!editor) {

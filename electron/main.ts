@@ -1,7 +1,7 @@
 import { app, BrowserWindow, ipcMain, dialog, Tray, Menu, nativeImage, shell } from 'electron'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { format } from 'date-fns'
+import { format, parseISO } from 'date-fns'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -284,10 +284,12 @@ ipcMain.handle('archive-day', async (event, dateString: string) => {
   const baseDir = store.get('base-dir') as string | undefined || DEFAULT_BASE_DIR;
   if (!fs.existsSync(baseDir)) return { success: false, error: 'Base directory missing' };
   
-  const date = new Date(dateString);
-  const year = date.getFullYear().toString();
-  const month = date.toLocaleString('default', { month: 'long' });
-  const day = format(date, 'dd');
+  // Robust date parsing (Timezone-agnostic)
+  const [y, m, d] = dateString.split('-').map(Number);
+  const date = new Date(y, m - 1, d);
+  const year = y.toString();
+  const month = format(date, 'MMMM');
+  const day = d < 10 ? `0${d}` : d.toString();
   
   let totalArchived = 0;
   let totalPending = 0;
@@ -370,10 +372,12 @@ ipcMain.handle('archive-day', async (event, dateString: string) => {
 ipcMain.handle('read-archive', async (event, folder: string, dateString: string) => {
   const baseDir = store.get('base-dir') as string | undefined || DEFAULT_BASE_DIR;
   
-  const date = new Date(dateString);
-  const year = date.getFullYear().toString();
-  const month = date.toLocaleString('default', { month: 'long' });
-  const day = format(date, 'dd');
+  // Robust date parsing (Timezone-agnostic)
+  const [y, m, d] = dateString.split('-').map(Number);
+  const date = new Date(y, m - 1, d);
+  const year = y.toString();
+  const month = format(date, 'MMMM');
+  const day = d < 10 ? `0${d}` : d.toString();
   
   const archiveDir = path.join(baseDir, folder, year, month);
   const jsonPath = path.join(archiveDir, `${day}.json`);
@@ -403,6 +407,42 @@ ipcMain.handle('read-archive', async (event, folder: string, dateString: string)
   } catch (e) {
     return { success: false, error: (e as Error).message };
   }
+});
+
+ipcMain.handle('list-archive-dates', async (event, folder: string) => {
+  const baseDir = store.get('base-dir') as string | undefined || DEFAULT_BASE_DIR;
+  const folderPath = path.join(baseDir, folder);
+  if (!fs.existsSync(folderPath)) return [];
+
+  const dates: string[] = [];
+  
+  const scanDir = (dir: string) => {
+    if (!fs.existsSync(dir)) return;
+    const items = fs.readdirSync(dir, { withFileTypes: true });
+    for (const item of items) {
+      const fullPath = path.join(dir, item.name);
+      if (item.isDirectory()) {
+        scanDir(fullPath);
+      } else if (item.name.endsWith('.json')) {
+        try {
+          // Attempt to extract date from JSON if filename is just DD.json
+          // But actually, we need the full YYYY-MM-DD.
+          // The structure is folder/YYYY/Month/DD.json
+          // Let's try to parse the JSON for the date field we saved
+          const content = fs.readFileSync(fullPath, 'utf8');
+          const data = JSON.parse(content);
+          if (data.date) {
+            dates.push(data.date);
+          }
+        } catch (e) {
+          // Skip invalid JSON
+        }
+      }
+    }
+  };
+
+  scanDir(folderPath);
+  return dates;
 });
 
 // Auto-Start integration

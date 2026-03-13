@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Calendar as CalendarIcon, Check } from 'lucide-react';
 import { useFolders } from '@/context/FolderContext';
-import { format, subDays, isAfter, startOfDay } from 'date-fns';
+import { format, subDays, isBefore, startOfDay, parseISO } from 'date-fns';
 import { Calendar } from '@/components/ui/calendar';
 import type { Task } from '@/types/task';
 
@@ -25,6 +25,7 @@ export function HistoryModal({ isOpen, onClose }: HistoryModalProps) {
   const { activeFolder } = useFolders();
   const [selectedDate, setSelectedDate] = useState<Date>(subDays(new Date(), 1));
   const [logData, setLogData] = useState<{ type: 'json' | 'markdown' | 'text', content: ArchivedLog | string } | null>(null);
+  const [archivedDates, setArchivedDates] = useState<Date[]>([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -53,6 +54,20 @@ export function HistoryModal({ isOpen, onClose }: HistoryModalProps) {
     
     fetchLog();
   }, [isOpen, selectedDate, activeFolder]);
+  
+  useEffect(() => {
+    async function fetchArchivedDates() {
+      if (!isOpen || !activeFolder || !window.fsAPI?.listArchiveDates) return;
+      try {
+        const dates = await window.fsAPI.listArchiveDates(activeFolder);
+        // Use parseISO and startOfDay for consistent local date mapping
+        setArchivedDates(dates.map(d => startOfDay(parseISO(d))));
+      } catch (err) {
+        console.error("Failed to fetch archived dates", err);
+      }
+    }
+    fetchArchivedDates();
+  }, [isOpen, activeFolder]);
 
   const renderContent = () => {
     if (loading) {
@@ -78,21 +93,50 @@ export function HistoryModal({ isOpen, onClose }: HistoryModalProps) {
     }
 
     if (logData.type === 'json' && typeof logData.content !== 'string') {
-      const { tasks } = logData.content;
-      const completedTasks = tasks.filter((t: Task) => t.completed);
-      const pendingTasks = tasks.filter((t: Task) => !t.completed);
+      const { tasks, stats } = logData.content as any;
+      
+      // Handle cases where tasks might be missing (older archives)
+      if (!Array.isArray(tasks)) {
+        return (
+          <div className="space-y-4">
+            <div className="p-4 bg-amber-500/10 border border-amber-500/20 rounded-lg text-amber-600 text-sm">
+              This is a legacy archive format. Displaying raw data below:
+            </div>
+            <pre className="whitespace-pre-wrap font-mono text-[13px] leading-relaxed text-muted-foreground bg-muted/30 p-5 rounded-lg border border-border/50 shadow-inner">
+              {JSON.stringify(logData.content, null, 2)}
+            </pre>
+          </div>
+        );
+      }
+
+      const completedTasks = tasks.filter((t: any) => Boolean(t.completed));
+      const pendingTasks = tasks.filter((t: any) => !Boolean(t.completed));
 
       return (
-        <div className="space-y-8">
-          {completedTasks.length > 0 && (
+        <div className="space-y-10 pb-10">
+          {/* Summary Stats */}
+          {stats && (
+            <div className="flex gap-4 p-4 bg-muted/20 rounded-xl border border-dashed">
+               <div className="flex-1 text-center border-r border-dashed last:border-0">
+                  <p className="text-xs text-muted-foreground uppercase tracking-widest font-semibold">Completed</p>
+                  <p className="text-2xl font-bold text-green-500 mt-1">{stats.completed || completedTasks.length}</p>
+               </div>
+               <div className="flex-1 text-center border-r border-dashed last:border-0">
+                  <p className="text-xs text-muted-foreground uppercase tracking-widest font-semibold">Carried Forward</p>
+                  <p className="text-2xl font-bold text-amber-500 mt-1">{stats.pending || pendingTasks.length}</p>
+               </div>
+            </div>
+          )}
+
+          {completedTasks.length > 0 ? (
             <section>
               <h4 className="text-sm font-semibold text-muted-foreground mb-4 flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-green-500" />
-                Completed ({completedTasks.length})
+                Completed Tasks ({completedTasks.length})
               </h4>
               <div className="space-y-3">
-                {completedTasks.map((task: Task) => (
-                  <div key={task.id} className="flex gap-3 p-3 rounded-lg border bg-muted/30 opacity-70">
+                {completedTasks.map((task: any) => (
+                  <div key={task.id} className="flex gap-3 p-3 rounded-lg border bg-muted/30 opacity-70 group transition-all hover:opacity-100">
                     <div className="mt-0.5">
                        <Check className="w-4 h-4 text-green-500" />
                     </div>
@@ -100,7 +144,7 @@ export function HistoryModal({ isOpen, onClose }: HistoryModalProps) {
                       <p className="text-sm font-medium line-through decoration-muted-foreground/50">{task.title}</p>
                       {task.description && (
                         <div 
-                          className="mt-1 text-xs text-muted-foreground prose prose-invert max-w-none"
+                          className="mt-1 text-xs text-muted-foreground prose prose-invert max-w-none line-clamp-2 group-hover:line-clamp-none transition-all"
                           dangerouslySetInnerHTML={{ __html: task.description }}
                         />
                       )}
@@ -108,6 +152,10 @@ export function HistoryModal({ isOpen, onClose }: HistoryModalProps) {
                   </div>
                 ))}
               </div>
+            </section>
+          ) : (
+            <section className="text-center py-6 border rounded-xl bg-muted/10 border-dashed">
+               <p className="text-sm text-muted-foreground italic">No tasks were completed this day.</p>
             </section>
           )}
 
@@ -118,9 +166,9 @@ export function HistoryModal({ isOpen, onClose }: HistoryModalProps) {
                 Carried Forward ({pendingTasks.length})
               </h4>
               <div className="space-y-3">
-                {pendingTasks.map((task: Task) => (
-                  <div key={task.id} className="flex gap-3 p-3 rounded-lg border bg-card/50">
-                    <div className="mt-1 flex items-center justify-center w-4 h-4 rounded border border-muted-foreground/30" />
+                {pendingTasks.map((task: any) => (
+                  <div key={task.id} className="flex gap-3 p-3 rounded-lg border bg-card/50 shadow-sm">
+                    <div className="mt-1 flex items-center justify-center w-4 h-4 rounded border border-muted-foreground/30 shrink-0" />
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium">{task.title}</p>
                       {task.description && (
@@ -174,20 +222,24 @@ export function HistoryModal({ isOpen, onClose }: HistoryModalProps) {
               </button>
             </div>
 
-            <div className="flex flex-1 overflow-hidden">
-              <div className="w-auto border-r bg-muted/10 p-4 hidden md:block overflow-y-auto">
+            <div className="flex-1 flex flex-col md:flex-row overflow-y-auto scrollbar-thin">
+              <div className="w-auto border-r bg-muted/10 p-4 shrink-0 border-b md:border-b-0">
                 <Calendar
                   mode="single"
                   selected={selectedDate}
                   captionLayout="dropdown"
                   onSelect={(date) => date && setSelectedDate(date)}
-                  disabled={(date) => isAfter(startOfDay(date), startOfDay(new Date()))}
-                  className="rounded-md border shadow-sm bg-background"
+                  disabled={(date) => !isBefore(startOfDay(date), startOfDay(new Date()))}
+                  modifiers={{ archived: archivedDates }}
+                  modifiersClassNames={{
+                    archived: "relative after:absolute after:bottom-1 after:left-1/2 after:-translate-x-1/2 after:w-1 after:h-1 after:bg-primary after:rounded-full"
+                  }}
+                  className="rounded-md border shadow-sm bg-background mx-auto"
                 />
               </div>
 
               {/* Main Content Area */}
-              <div className="flex-1 p-6 overflow-y-auto bg-background/50 relative scrollbar-thin">
+              <div className="flex-1 p-6 bg-background/50 relative">
                 <div className="mb-6 border-b pb-4">
                   <h3 className="text-2xl font-bold tracking-tight">{format(selectedDate, 'EEEE, MMMM d, yyyy')}</h3>
                   <p className="text-muted-foreground mt-1">Archived task log</p>

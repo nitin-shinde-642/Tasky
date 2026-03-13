@@ -40,6 +40,7 @@ contextBridge.exposeInMainWorld('fsAPI', {
   showOpenDialog: () => ipcRenderer.invoke('show-open-dialog'),
   archiveDay: (dateString: string) => ipcRenderer.invoke('archive-day', dateString),
   readArchive: (folder: string, dateString: string) => ipcRenderer.invoke('read-archive', folder, dateString),
+  listArchiveDates: (folder: string) => ipcRenderer.invoke('list-archive-dates', folder),
   deleteFolder: (folderName: string, targetFolder?: string) => ipcRenderer.invoke('delete-folder', folderName, targetFolder),
   exportData: () => ipcRenderer.invoke('export-data'),
   importData: () => ipcRenderer.invoke('import-data')
