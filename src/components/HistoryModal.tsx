@@ -144,7 +144,7 @@ export function HistoryModal({ isOpen, onClose }: HistoryModalProps) {
                       <p className="text-sm font-medium line-through decoration-muted-foreground/50">{task.title}</p>
                       {task.description && (
                         <div 
-                          className="mt-1 text-xs text-muted-foreground prose prose-invert max-w-none line-clamp-2 group-hover:line-clamp-none transition-all"
+                          className="mt-1 text-xs text-muted-foreground prose prose-sm prose-tight dark:prose-invert max-w-none line-clamp-2 group-hover:line-clamp-none transition-all"
                           dangerouslySetInnerHTML={{ __html: task.description }}
                         />
                       )}

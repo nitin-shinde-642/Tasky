@@ -57,6 +57,17 @@
   body {
     @apply bg-transparent text-foreground;
   }
+
+  /* Compact Typography for Rich Text */
+  .prose p {
+    @apply my-1 first:mt-0 last:mb-0;
+  }
+  .prose ul, .prose ol {
+    @apply my-1 first:mt-0 last:mb-0;
+  }
+  .prose li {
+    @apply my-0.5;
+  }
 }
 
 /* Accent Themes */
