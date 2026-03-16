@@ -27,6 +27,7 @@ export function TaskDetailsModal({ task, isOpen, onClose, onDelete, onToggle, on
 
   useEffect(() => {
     // Reset editing state when modal opens
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsEditing(false);
   }, [isOpen]);
 

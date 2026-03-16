@@ -43,6 +43,7 @@ export const FolderProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     refreshFolders();
   }, [refreshFolders]);
 

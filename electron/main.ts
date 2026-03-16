@@ -1,7 +1,7 @@
 import { app, BrowserWindow, ipcMain, dialog, Tray, Menu, nativeImage, shell } from 'electron'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { format, parseISO } from 'date-fns'
+import { format } from 'date-fns'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -181,6 +181,7 @@ ipcMain.handle('create-folder', (event, folderName: string) => {
   }
   
   // Illegal Windows characters: < > : " / \ | ? * and control chars (0-31)
+  // eslint-disable-next-line no-control-regex
   const illegalChars = /[<>:"/\\|?*\u0000-\u001F]/;
   if (illegalChars.test(cleanName)) {
     return { success: false, error: 'Folder name contains invalid characters' };
@@ -446,7 +447,7 @@ ipcMain.handle('list-archive-dates', async (event, folder: string) => {
           if (data.date) {
             dates.push(data.date);
           }
-        } catch (e) {
+        } catch {
           // Skip invalid JSON
         }
       }

@@ -93,7 +93,7 @@ export function HistoryModal({ isOpen, onClose }: HistoryModalProps) {
     }
 
     if (logData.type === 'json' && typeof logData.content !== 'string') {
-      const { tasks, stats } = logData.content as any;
+      const { tasks, stats } = logData.content as { tasks: Task[], stats: { completed: number, pending: number } };
       
       // Handle cases where tasks might be missing (older archives)
       if (!Array.isArray(tasks)) {
@@ -109,8 +109,8 @@ export function HistoryModal({ isOpen, onClose }: HistoryModalProps) {
         );
       }
 
-      const completedTasks = tasks.filter((t: any) => Boolean(t.completed));
-      const pendingTasks = tasks.filter((t: any) => !Boolean(t.completed));
+      const completedTasks = tasks.filter((t: Task) => !!t.completed);
+      const pendingTasks = tasks.filter((t: Task) => !t.completed);
 
       return (
         <div className="space-y-10 pb-10">
@@ -135,7 +135,7 @@ export function HistoryModal({ isOpen, onClose }: HistoryModalProps) {
                 Completed Tasks ({completedTasks.length})
               </h4>
               <div className="space-y-3">
-                {completedTasks.map((task: any) => (
+                {completedTasks.map((task: Task) => (
                   <div key={task.id} className="flex gap-3 p-3 rounded-lg border bg-muted/30 opacity-70 group transition-all hover:opacity-100">
                     <div className="mt-0.5">
                        <Check className="w-4 h-4 text-green-500" />
@@ -166,7 +166,7 @@ export function HistoryModal({ isOpen, onClose }: HistoryModalProps) {
                 Carried Forward ({pendingTasks.length})
               </h4>
               <div className="space-y-3">
-                {pendingTasks.map((task: any) => (
+                {pendingTasks.map((task: Task) => (
                   <div key={task.id} className="flex gap-3 p-3 rounded-lg border bg-card/50 shadow-sm">
                     <div className="mt-1 flex items-center justify-center w-4 h-4 rounded border border-muted-foreground/30 shrink-0" />
                     <div className="flex-1 min-w-0">

@@ -25,6 +25,7 @@ function AppContent() {
 
   useEffect(() => {
     if (summaryStats && summaryStats.date !== lastShownDate) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setShowSummary(true);
       setLastShownDate(summaryStats.date);
     }
