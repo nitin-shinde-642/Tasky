@@ -43,7 +43,7 @@ export function TitleBar({ onSettingsClick }: TitleBarProps) {
         >
           <Menu size={18} />
         </button>
-        <img src="/icon.svg" alt="Logo" className="w-5 h-5 shrink-0" />
+        <img src="./icon.svg" alt="Logo" className="w-5 h-5 shrink-0" />
         <span className="font-semibold text-sm" style={{ WebkitAppRegion: 'drag' } as React.CSSProperties}>TaskLyn</span>
       </div>
 

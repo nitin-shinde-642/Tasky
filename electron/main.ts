@@ -148,13 +148,25 @@ ipcMain.handle('set-base-dir', (event, newDir: string) => {
 });
 
 ipcMain.handle('list-folders', () => {
-  const baseDir = store.get('base-dir') as string | undefined || DEFAULT_BASE_DIR;
+  const baseDir = (store.get('base-dir') as string | undefined) || DEFAULT_BASE_DIR;
   if (!fs.existsSync(baseDir)) {
     fs.mkdirSync(baseDir, { recursive: true });
-    return [];
   }
-  const items = fs.readdirSync(baseDir, { withFileTypes: true });
-  return items.filter(item => item.isDirectory()).map(item => item.name);
+  
+  let folders = fs.readdirSync(baseDir, { withFileTypes: true })
+    .filter(item => item.isDirectory())
+    .map(item => item.name);
+
+  // Ensure at least one folder exists for first run
+  if (folders.length === 0) {
+    const defaultFolderPath = path.join(baseDir, 'Default');
+    if (!fs.existsSync(defaultFolderPath)) {
+      fs.mkdirSync(defaultFolderPath);
+      folders = ['Default'];
+    }
+  }
+  
+  return folders;
 });
 
 ipcMain.handle('create-folder', (event, folderName: string) => {
@@ -453,7 +465,8 @@ ipcMain.handle('get-auto-start', () => {
 ipcMain.on('set-auto-start', (event, enable: boolean) => {
   app.setLoginItemSettings({
     openAtLogin: enable,
-    openAsHidden: enable
+    openAsHidden: enable,
+    path: app.getPath('exe')
   });
 });
 
@@ -499,5 +512,13 @@ app.whenReady().then(() => {
 
   tray.setToolTip('TaskLyn');
   tray.setContextMenu(contextMenu);
-  tray.on('click', () => win?.show());
+  tray.on('click', () => {
+    if (!win) return;
+    if (win.isVisible()) {
+      win.hide();
+    } else {
+      win.show();
+      win.focus();
+    }
+  });
 })
