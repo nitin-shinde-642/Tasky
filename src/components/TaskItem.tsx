@@ -91,9 +91,12 @@ export const TaskItem = memo(function TaskItem({ task, index, onToggle, onDelete
               }
             }}
           >
-            <div
+            <motion.div
+              layout
               ref={provided.innerRef}
               {...provided.draggableProps}
+              whileHover={{ y: -1, scale: 1.005 }}
+              transition={{ type: "spring", stiffness: 500, damping: 30 }}
               className={cn(
                 "group relative flex flex-col gap-2 rounded-lg border bg-card p-3 shadow-sm transition-colors mb-2 select-none",
                 snapshot.isDragging && "shadow-lg border-primary/50 z-50",

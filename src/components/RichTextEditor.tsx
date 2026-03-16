@@ -178,8 +178,16 @@ export function RichTextEditor({ content, onChange, onSubmit, className }: RichT
               value={linkUrl}
               onChange={(e) => setLinkUrl(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === 'Enter') saveLink();
-                if (e.key === 'Escape') setShowLinkModal(false);
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  saveLink();
+                }
+                if (e.key === 'Escape') {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setShowLinkModal(false);
+                }
               }}
               className="flex-1 bg-transparent border-none focus:ring-0 text-xs py-1 px-1 outline-none"
             />

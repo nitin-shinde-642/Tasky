@@ -83,14 +83,37 @@ export function TaskList() {
             ref={provided.innerRef}
             className="flex-1 w-full overflow-y-auto overflow-x-hidden p-1 pr-2 pb-24 space-y-2 custom-scrollbar"
           >
-            <AnimatePresence initial={false}>
+            <AnimatePresence mode="popLayout" initial={false}>
               {filteredTasks.map((task, index) => (
                 <motion.div
                   key={task.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
-                  transition={{ duration: 0.2 }}
+                  layout
+                  initial={{ opacity: 0, y: 15, scale: 0.98 }}
+                  animate={{ 
+                    opacity: 1, 
+                    y: 0, 
+                    scale: 1,
+                    transition: {
+                      type: "spring",
+                      stiffness: 500,
+                      damping: 35,
+                      mass: 0.5,
+                      delay: index * 0.05 // Stagger effect
+                    }
+                  }}
+                  exit={{ 
+                    opacity: 0, 
+                    scale: 0.95, 
+                    transition: { duration: 0.15 } 
+                  }}
+                  transition={{
+                    layout: {
+                      type: "spring",
+                      stiffness: 500,
+                      damping: 35,
+                      mass: 0.5
+                    }
+                  }}
                 >
                   <TaskItem 
                     task={task} 
