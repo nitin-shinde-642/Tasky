@@ -472,15 +472,14 @@ ipcMain.handle('get-auto-start', () => {
 });
 
 ipcMain.on('set-auto-start', (event, enable: boolean) => {
-  const isProd = app.isPackaged;
-  const appPath = isProd ? app.getPath('exe') : process.execPath;
-  const args = isProd ? ['--hidden'] : [path.join(__dirname, '..'), '--hidden'];
-
-  app.setLoginItemSettings({
-    openAtLogin: enable,
-    path: appPath,
-    args: args
-  });
+  // Only modify registry/auto-start settings in a packaged (production) build
+  if (app.isPackaged) {
+    app.setLoginItemSettings({
+      openAtLogin: enable,
+      path: app.getPath('exe'),
+      args: ['--hidden']
+    });
+  }
 });
 
 // Appearance Integration
@@ -505,17 +504,13 @@ app.on('activate', () => {
 })
 
 app.whenReady().then(() => {
-  // First launch auto-start setup
+  // First launch auto-start setup (Production only)
   const autoStartSetup = store.get('auto-start-initialized') as boolean | undefined;
-  if (autoStartSetup === undefined) {
-    const isProd = app.isPackaged;
-    const appPath = isProd ? app.getPath('exe') : process.execPath;
-    const args = isProd ? ['--hidden'] : [path.join(__dirname, '..'), '--hidden'];
-
+  if (autoStartSetup === undefined && app.isPackaged) {
     app.setLoginItemSettings({
       openAtLogin: true,
-      path: appPath,
-      args: args
+      path: app.getPath('exe'),
+      args: ['--hidden']
     });
     store.set('auto-start-initialized', true);
   }

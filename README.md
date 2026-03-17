@@ -34,7 +34,7 @@ Master your workflow with keyboard-first interactions:
 
 ## 🚀 Getting Started
 
-1.  **Download**: Run the `TaskLyn Setup 0.1.1.exe` installer.
+1.  **Download**: Run the `TaskLyn Setup 0.1.2.exe` installer.
 2.  **Organize**: Create your first folder (e.g., "Work", "Personal").
 3.  **Capture**: Start typing to add tasks. Use `Ctrl + Enter` to save.
 4.  **Reflect**: Use the History icon to view your past achievements and productivity heatmap.
