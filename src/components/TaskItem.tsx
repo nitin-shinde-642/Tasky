@@ -91,143 +91,148 @@ export const TaskItem = memo(function TaskItem({ task, index, onToggle, onDelete
               }
             }}
           >
-            <motion.div
-              layout
+            <div
               ref={provided.innerRef}
               {...provided.draggableProps}
-              whileHover={{ y: -1, scale: 1.005 }}
-              transition={{ type: "spring", stiffness: 500, damping: 30 }}
-              className={cn(
-                "group relative flex flex-col gap-2 rounded-lg border bg-card p-3 shadow-sm transition-colors mb-2 select-none",
-                snapshot.isDragging && "shadow-lg border-primary/50 z-50",
-                task.completed && "opacity-60 bg-muted/50"
-              )}
+              style={{
+                ...provided.draggableProps.style,
+              }}
+              className="mb-2"
             >
-          <div className="flex items-start gap-3">
-            <div
-              {...provided.dragHandleProps}
-              className="mt-1 -ml-1 cursor-grab text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 active:cursor-grabbing"
-              title="Drag to reorder"
-            >
-              <GripVertical size={16} />
-            </div>
+              <motion.div
+                whileHover={{ y: -1, scale: 1.005 }}
+                transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                className={cn(
+                  "group relative flex flex-col gap-2 rounded-lg border bg-card p-3 shadow-sm transition-colors select-none",
+                  snapshot.isDragging && "shadow-lg border-primary/50 z-50",
+                  task.completed && "opacity-60 bg-muted/50"
+                )}
+              >
+                <div className="flex items-start gap-3">
+                  <div
+                    {...provided.dragHandleProps}
+                    className="mt-1 -ml-1 cursor-grab text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 active:cursor-grabbing"
+                    title="Drag to reorder"
+                  >
+                    <GripVertical size={16} />
+                  </div>
 
-            <div className="mt-1 h-5 w-5 flex items-center justify-center">
-              <Checkbox
-                checked={task.completed}
-                onCheckedChange={() => onToggle(task.id)}
-              />
-            </div>
-
-            <div className="flex flex-1 flex-col justify-center min-w-0" onDoubleClick={() => !task.completed && setIsEditing(true)}>
-              {isEditing ? (
-                 <div className="space-y-2 w-full mt-1.5 pb-2">
-                   <input
-                     ref={titleInputRef}
-                     type="text"
-                     value={editTitle}
-                     onChange={(e) => setEditTitle(e.target.value)}
-                     onKeyDown={(e) => {
-                       if (e.key === 'Enter') handleSave();
-                       if (e.key === 'Escape') handleCancel();
-                     }}
-                     className="w-full bg-background border px-2 py-1 text-sm rounded-md focus:ring-1 focus:ring-primary outline-none"
-                     placeholder="Task title"
-                     />
-                     <div className="flex gap-2 w-full mt-2">
-                       <RichTextEditor
-                         content={editDesc || ''}
-                         onChange={setEditDesc}
-                       />
-                       <div className="flex flex-col gap-1 shrink-0">
-                        <button onClick={handleSave} className="p-1.5 bg-primary text-primary-foreground rounded-md hover:opacity-90 transition-opacity" title="Save changes">
-                          <Check size={14} />
-                        </button>
-                        <button onClick={handleCancel} className="p-1.5 bg-muted text-muted-foreground rounded-md hover:bg-muted/80 transition-colors" title="Cancel">
-                          <X size={14} />
-                        </button>
-                     </div>
-                   </div>
-                 </div>
-              ) : (
-                <>
-                  <div className="relative inline-block w-full">
-                    <span
-                      className={cn(
-                        "block truncate font-medium text-sm transition-colors duration-200",
-                        task.completed ? "text-muted-foreground" : "text-foreground"
-                      )}
-                    >
-                      {task.title}
-                    </span>
-                    
-                    {/* Animated Strikethrough */}
-                    <motion.div
-                      initial={false}
-                      animate={{
-                        width: task.completed ? "100%" : "0%",
-                        opacity: task.completed ? 1 : 0
-                      }}
-                      transition={{ duration: 0.3, ease: "easeInOut" }}
-                      className="absolute left-0 top-1/2 h-[1.5px] -translate-y-1/2 bg-muted-foreground origin-left pointer-events-none"
+                  <div className="mt-1 h-5 w-5 flex items-center justify-center">
+                    <Checkbox
+                      checked={task.completed}
+                      onCheckedChange={() => onToggle(task.id)}
                     />
                   </div>
 
-                  {task.description && (
-                    <div className="mt-1 flex flex-col items-start gap-1 w-full pl-0.5">
-                      <div
-                        ref={descRef}
-                        className={cn(
-                          "prose prose-sm dark:prose-invert max-w-none text-xs break-words leading-relaxed [&_p]:m-0 [&_ul]:my-1 [&_ol]:my-1 [&_li]:my-0",
-                          !isExpanded && "line-clamp-2 overflow-hidden"
+                  <div className="flex flex-1 flex-col justify-center min-w-0" onDoubleClick={() => !task.completed && setIsEditing(true)}>
+                    {isEditing ? (
+                      <div className="space-y-2 w-full mt-1.5 pb-2">
+                        <input
+                          ref={titleInputRef}
+                          type="text"
+                          value={editTitle}
+                          onChange={(e) => setEditTitle(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') handleSave();
+                            if (e.key === 'Escape') handleCancel();
+                          }}
+                          className="w-full bg-background border px-2 py-1 text-sm rounded-md focus:ring-1 focus:ring-primary outline-none"
+                          placeholder="Task title"
+                        />
+                        <div className="flex gap-2 w-full mt-2">
+                          <RichTextEditor
+                            content={editDesc || ''}
+                            onChange={setEditDesc}
+                          />
+                          <div className="flex flex-col gap-1 shrink-0">
+                            <button onClick={handleSave} className="p-1.5 bg-primary text-primary-foreground rounded-md hover:opacity-90 transition-opacity" title="Save changes">
+                              <Check size={14} />
+                            </button>
+                            <button onClick={handleCancel} className="p-1.5 bg-muted text-muted-foreground rounded-md hover:bg-muted/80 transition-colors" title="Cancel">
+                              <X size={14} />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="relative inline-block w-full">
+                          <span
+                            className={cn(
+                              "block truncate font-medium text-sm transition-colors duration-200",
+                              task.completed ? "text-muted-foreground" : "text-foreground"
+                            )}
+                          >
+                            {task.title}
+                          </span>
+                          
+                          <motion.div
+                            initial={false}
+                            animate={{
+                              width: task.completed ? "100%" : "0%",
+                              opacity: task.completed ? 1 : 0
+                            }}
+                            transition={{ duration: 0.3, ease: "easeInOut" }}
+                            className="absolute left-0 top-1/2 h-[1.5px] -translate-y-1/2 bg-muted-foreground origin-left pointer-events-none"
+                          />
+                        </div>
+
+                        {task.description && (
+                          <div className="mt-1 flex flex-col items-start gap-1 w-full pl-0.5">
+                            <div
+                              ref={descRef}
+                              className={cn(
+                                "prose prose-sm dark:prose-invert max-w-none text-xs break-words leading-relaxed [&_p]:m-0 [&_ul]:my-1 [&_ol]:my-1 [&_li]:my-0",
+                                !isExpanded && "line-clamp-2 overflow-hidden"
+                              )}
+                              dangerouslySetInnerHTML={{ __html: task.description || '' }}
+                            />
+                            {showSeeMore && (
+                              <button
+                                onClick={() => setIsExpanded(!isExpanded)}
+                                className="text-[11px] font-semibold text-primary/80 hover:text-primary transition-colors flex items-center gap-0.5 mt-0.5"
+                              >
+                                {isExpanded ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+                                {isExpanded ? 'See less' : 'See more'}
+                              </button>
+                            )}
+                          </div>
                         )}
-                        dangerouslySetInnerHTML={{ __html: task.description || '' }}
-                      />
-                      {showSeeMore && (
+                      </>
+                    )}
+                  </div>
+
+                  {!isEditing && (
+                    <div className="mt-1 opacity-0 transition-opacity group-hover:opacity-100 flex items-center gap-1 shrink-0">
+                      <button
+                        onClick={() => setIsDetailsOpen(true)}
+                        className="p-1 hover:text-blue-500 text-muted-foreground transition-colors rounded hover:bg-muted"
+                        title="View details"
+                      >
+                        <Eye size={15} />
+                      </button>
+                      {!task.completed && (
                         <button
-                          onClick={() => setIsExpanded(!isExpanded)}
-                          className="text-[11px] font-semibold text-primary/80 hover:text-primary transition-colors flex items-center gap-0.5 mt-0.5"
+                          onClick={() => setIsEditing(true)}
+                          className="p-1 hover:text-primary text-muted-foreground transition-colors rounded hover:bg-muted"
+                          title="Edit task"
                         >
-                          {isExpanded ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
-                          {isExpanded ? 'See less' : 'See more'}
+                          <Edit2 size={15} />
                         </button>
                       )}
+                      <button
+                        onClick={() => onDelete(task.id)}
+                        className="p-1 hover:text-destructive text-muted-foreground transition-colors rounded hover:bg-destructive/10"
+                        title="Delete task"
+                      >
+                        <Trash2 size={15} />
+                      </button>
                     </div>
                   )}
-                </>
-              )}
+                </div>
+              </motion.div>
             </div>
-
-            {!isEditing && (
-              <div className="mt-1 opacity-0 transition-opacity group-hover:opacity-100 flex items-center gap-1 shrink-0">
-                <button
-                  onClick={() => setIsDetailsOpen(true)}
-                  className="p-1 hover:text-blue-500 text-muted-foreground transition-colors rounded hover:bg-muted"
-                  title="View details"
-                >
-                  <Eye size={15} />
-                </button>
-                {!task.completed && (
-                  <button
-                    onClick={() => setIsEditing(true)}
-                    className="p-1 hover:text-primary text-muted-foreground transition-colors rounded hover:bg-muted"
-                    title="Edit task"
-                  >
-                    <Edit2 size={15} />
-                  </button>
-                )}
-                <button
-                  onClick={() => onDelete(task.id)}
-                  className="p-1 hover:text-destructive text-muted-foreground transition-colors rounded hover:bg-destructive/10"
-                  title="Delete task"
-                >
-                  <Trash2 size={15} />
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-      </ContextMenu.Trigger>
+          </ContextMenu.Trigger>
       
       <ContextMenu.Content className="min-w-[160px] bg-popover text-popover-foreground shadow-md rounded-md border p-1 z-50 animate-in fade-in zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out data-[state=closed]:zoom-out-95">
         {contextLink ? (

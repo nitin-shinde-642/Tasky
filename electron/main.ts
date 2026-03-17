@@ -35,6 +35,8 @@ interface ArchivedTask {
 }
 
 function createWindow() {
+  const isHidden = process.argv.includes('--hidden');
+
   win = new BrowserWindow({ 
     width: 550,
     height: 700,
@@ -42,6 +44,7 @@ function createWindow() {
     minHeight: 500,
     frame: false, // Frameless window
     titleBarStyle: 'hidden',
+    show: !isHidden,
     webPreferences: {
       preload: path.join(__dirname, 'preload.mjs'),
       nodeIntegration: false,
@@ -49,6 +52,12 @@ function createWindow() {
     },
     icon: path.join(process.env.VITE_PUBLIC || '', 'icon.png'),
   })
+
+  if (!isHidden) {
+    win.once('ready-to-show', () => {
+      win?.show();
+    });
+  }
 
   if (VITE_DEV_SERVER_URL) {
     win.loadURL(VITE_DEV_SERVER_URL)
@@ -395,7 +404,7 @@ ipcMain.handle('read-archive', async (event, folder: string, dateString: string)
   const archiveDir = path.join(baseDir, folder, year, month);
   const jsonPath = path.join(archiveDir, `${day}.json`);
   const mdPath = path.join(archiveDir, `${day}.md`);
-
+ 
   try {
     // Try JSON first for rich UI
     if (fs.existsSync(jsonPath)) {
@@ -440,7 +449,6 @@ ipcMain.handle('list-archive-dates', async (event, folder: string) => {
         try {
           // Attempt to extract date from JSON if filename is just DD.json
           // But actually, we need the full YYYY-MM-DD.
-          // The structure is folder/YYYY/Month/DD.json
           // Let's try to parse the JSON for the date field we saved
           const content = fs.readFileSync(fullPath, 'utf8');
           const data = JSON.parse(content);
@@ -464,10 +472,14 @@ ipcMain.handle('get-auto-start', () => {
 });
 
 ipcMain.on('set-auto-start', (event, enable: boolean) => {
+  const isProd = app.isPackaged;
+  const appPath = isProd ? app.getPath('exe') : process.execPath;
+  const args = isProd ? ['--hidden'] : [path.join(__dirname, '..'), '--hidden'];
+
   app.setLoginItemSettings({
     openAtLogin: enable,
-    openAsHidden: enable,
-    path: app.getPath('exe')
+    path: appPath,
+    args: args
   });
 });
 
@@ -493,6 +505,21 @@ app.on('activate', () => {
 })
 
 app.whenReady().then(() => {
+  // First launch auto-start setup
+  const autoStartSetup = store.get('auto-start-initialized') as boolean | undefined;
+  if (autoStartSetup === undefined) {
+    const isProd = app.isPackaged;
+    const appPath = isProd ? app.getPath('exe') : process.execPath;
+    const args = isProd ? ['--hidden'] : [path.join(__dirname, '..'), '--hidden'];
+
+    app.setLoginItemSettings({
+      openAtLogin: true,
+      path: appPath,
+      args: args
+    });
+    store.set('auto-start-initialized', true);
+  }
+
   createWindow()
 
   // Setup System Tray

@@ -2,7 +2,6 @@ import { DragDropContext, Droppable } from '@hello-pangea/dnd';
 import type { DropResult } from '@hello-pangea/dnd';
 import { useTasks } from '@/context/TaskContext';
 import { TaskItem } from './TaskItem';
-import { motion, AnimatePresence } from 'framer-motion';
 import { ClipboardList, SearchX } from 'lucide-react';
 
 export function TaskList() {
@@ -83,49 +82,19 @@ export function TaskList() {
             ref={provided.innerRef}
             className="flex-1 w-full overflow-y-auto overflow-x-hidden p-1 pr-2 pb-24 space-y-2 custom-scrollbar"
           >
-            <AnimatePresence mode="popLayout" initial={false}>
+            <div className="flex flex-col gap-1 w-full">
               {filteredTasks.map((task, index) => (
-                <motion.div
+                <TaskItem 
                   key={task.id}
-                  layout
-                  initial={{ opacity: 0, y: 15, scale: 0.98 }}
-                  animate={{ 
-                    opacity: 1, 
-                    y: 0, 
-                    scale: 1,
-                    transition: {
-                      type: "spring",
-                      stiffness: 500,
-                      damping: 35,
-                      mass: 0.5,
-                      delay: index * 0.05 // Stagger effect
-                    }
-                  }}
-                  exit={{ 
-                    opacity: 0, 
-                    scale: 0.95, 
-                    transition: { duration: 0.15 } 
-                  }}
-                  transition={{
-                    layout: {
-                      type: "spring",
-                      stiffness: 500,
-                      damping: 35,
-                      mass: 0.5
-                    }
-                  }}
-                >
-                  <TaskItem 
-                    task={task} 
-                    index={index} 
-                    onToggle={toggleTaskCompletion} 
-                    onDelete={deleteTask} 
-                    onUpdate={updateTask}
-                    onMove={moveTask}
-                  />
-                </motion.div>
+                  task={task} 
+                  index={index} 
+                  onToggle={toggleTaskCompletion} 
+                  onDelete={deleteTask} 
+                  onUpdate={updateTask}
+                  onMove={moveTask}
+                />
               ))}
-            </AnimatePresence>
+            </div>
             {provided.placeholder}
           </div>
         )}

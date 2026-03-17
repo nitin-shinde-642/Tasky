@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 // Removed framer-motion since this is now a standard view
-import { X, Save, FolderOpen, Loader2, Settings, Power, Palette, Moon, Sun, Monitor, HardDriveDownload, HardDriveUpload } from 'lucide-react';
+import { X, Save, FolderOpen, Loader2, Settings, Palette, Moon, Sun, Monitor, HardDriveDownload, HardDriveUpload } from 'lucide-react';
 import { useFolders } from '@/context/FolderContext';
 import { useTheme } from '@/components/ThemeProvider';
 import { toast } from 'sonner';
@@ -14,7 +14,7 @@ export function SettingsView({ isOpen, onClose }: SettingsModalProps) {
   const { baseDir, updateBaseDir } = useFolders();
   const { theme, setTheme } = useTheme();
   const [newDir, setNewDir] = useState(baseDir);
-  const [autoStart, setAutoStart] = useState(false);
+  const [autoStart, setAutoStart] = useState(true);
   const [status, setStatus] = useState<'idle' | 'saving' | 'success' | 'error'>('idle');
   const [message, setMessage] = useState('');
 
@@ -127,29 +127,6 @@ export function SettingsView({ isOpen, onClose }: SettingsModalProps) {
               System Setup
             </h3>
 
-            {/* Auto Start Toggle */}
-            <div className="flex flex-row items-center justify-between rounded-xl border p-4 shadow-sm bg-card max-w-md">
-              <div className="space-y-1">
-                <div className="text-base font-medium flex items-center gap-2 text-foreground">
-                  <Power className="w-4 h-4 text-muted-foreground" />
-                  Open on Startup
-                </div>
-                <div className="text-xs text-muted-foreground">
-                  Launch TaskLyn silently in the system tray when Windows starts
-                </div>
-              </div>
-              <div className="flex items-center">
-                 <button
-                  type="button"
-                  onClick={() => setAutoStart(!autoStart)}
-                  className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50 ${autoStart ? 'bg-primary' : 'bg-input'}`}
-                >
-                  <span
-                    className={`pointer-events-none block h-5 w-5 rounded-full bg-background ring-0 transition-transform shadow-sm ${autoStart ? 'translate-x-5' : 'translate-x-0'}`}
-                  />
-                </button>
-              </div>
-            </div>
 
           {/* Base Directory */}
           <div className="space-y-3 max-w-md">
