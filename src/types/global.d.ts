@@ -25,6 +25,7 @@ export interface IFsAPI {
 }
 
 export interface ISystemAPI {
+  getAppVersion: () => Promise<string>;
   getAutoStart: () => Promise<boolean>;
   setAutoStart: (enable: boolean) => void;
   setWindowOpacity: (opacity: number) => void;

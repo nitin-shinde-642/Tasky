@@ -15,6 +15,7 @@ export function SettingsView({ isOpen, onClose }: SettingsModalProps) {
   const { theme, setTheme } = useTheme();
   const [newDir, setNewDir] = useState(baseDir);
   const [autoStart, setAutoStart] = useState(true);
+  const [appVersion, setAppVersion] = useState('');
   const [updateStatus, setUpdateStatus] = useState<'idle' | 'available' | 'ready'>('idle');
   const [status, setStatus] = useState<'idle' | 'saving' | 'success' | 'error'>('idle');
   const [message, setMessage] = useState('');
@@ -22,6 +23,10 @@ export function SettingsView({ isOpen, onClose }: SettingsModalProps) {
   useEffect(() => {
     if (window.systemAPI?.getAutoStart) {
       window.systemAPI.getAutoStart().then(setAutoStart);
+    }
+
+    if (window.systemAPI?.getAppVersion) {
+      window.systemAPI.getAppVersion().then(setAppVersion);
     }
 
     // Update listeners
@@ -104,6 +109,7 @@ export function SettingsView({ isOpen, onClose }: SettingsModalProps) {
           <h2 className="text-2xl font-bold flex items-center gap-2">
             <Settings className="w-6 h-6 text-primary" />
             Settings
+            {appVersion && <span className="text-xs font-normal text-muted-foreground mt-1.5 ml-1">v{appVersion}</span>}
           </h2>
           <button onClick={onClose} className="rounded-md p-1.5 hover:bg-muted text-muted-foreground transition-colors border shadow-sm bg-card">
             <X className="w-4 h-4" />
@@ -257,7 +263,7 @@ export function SettingsView({ isOpen, onClose }: SettingsModalProps) {
                     </button>
                   ) : (
                     <span className="text-xs font-semibold text-muted-foreground px-2 py-1 rounded bg-muted/30">
-                      {updateStatus === 'available' ? 'Downloading...' : 'v0.1.2'}
+                      {updateStatus === 'available' ? 'Downloading...' : `v${appVersion || '...'}`}
                     </span>
                   )}
                 </div>

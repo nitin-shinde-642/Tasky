@@ -47,6 +47,7 @@ contextBridge.exposeInMainWorld('fsAPI', {
 })
 
 contextBridge.exposeInMainWorld('systemAPI', {
+  getAppVersion: () => ipcRenderer.invoke('get-app-version'),
   getAutoStart: () => ipcRenderer.invoke('get-auto-start'),
   setAutoStart: (enable: boolean) => ipcRenderer.send('set-auto-start', enable),
   setWindowOpacity: (opacity: number) => ipcRenderer.send('set-window-opacity', opacity),

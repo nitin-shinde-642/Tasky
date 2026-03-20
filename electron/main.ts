@@ -113,6 +113,10 @@ ipcMain.on('store-set', (event, key, val) => {
   store.set(key, val);
 });
 
+ipcMain.handle('get-app-version', () => {
+  return app.getVersion();
+});
+
 ipcMain.on('open-external', (event, url) => {
   shell.openExternal(url);
 });
