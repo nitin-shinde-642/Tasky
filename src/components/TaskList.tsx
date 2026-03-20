@@ -3,6 +3,7 @@ import type { DropResult } from '@hello-pangea/dnd';
 import { useTasks } from '@/context/TaskContext';
 import { TaskItem } from './TaskItem';
 import { ClipboardList, SearchX } from 'lucide-react';
+import { AnimatePresence } from 'framer-motion';
 
 export function TaskList() {
   const { tasks, reorderTasks, filterOption, searchQuery, toggleTaskCompletion, deleteTask, updateTask, moveTask, isLoading } = useTasks();
@@ -83,17 +84,19 @@ export function TaskList() {
             className="flex-1 w-full overflow-y-auto overflow-x-hidden p-1 pr-2 pb-24 space-y-2 custom-scrollbar"
           >
             <div className="flex flex-col gap-1 w-full">
-              {filteredTasks.map((task, index) => (
-                <TaskItem 
-                  key={task.id}
-                  task={task} 
-                  index={index} 
-                  onToggle={toggleTaskCompletion} 
-                  onDelete={deleteTask} 
-                  onUpdate={updateTask}
-                  onMove={moveTask}
-                />
-              ))}
+              <AnimatePresence initial={false} mode="popLayout">
+                {filteredTasks.map((task, index) => (
+                  <TaskItem 
+                    key={task.id}
+                    task={task} 
+                    index={index} 
+                    onToggle={toggleTaskCompletion} 
+                    onDelete={deleteTask} 
+                    onUpdate={updateTask}
+                    onMove={moveTask}
+                  />
+                ))}
+              </AnimatePresence>
             </div>
             {provided.placeholder}
           </div>

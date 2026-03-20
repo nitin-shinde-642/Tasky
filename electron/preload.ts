@@ -50,5 +50,12 @@ contextBridge.exposeInMainWorld('systemAPI', {
   getAutoStart: () => ipcRenderer.invoke('get-auto-start'),
   setAutoStart: (enable: boolean) => ipcRenderer.send('set-auto-start', enable),
   setWindowOpacity: (opacity: number) => ipcRenderer.send('set-window-opacity', opacity),
-  openExternal: (url: string) => ipcRenderer.send('open-external', url)
+  openExternal: (url: string) => ipcRenderer.send('open-external', url),
+  onUpdateAvailable: (callback: () => void) => {
+    ipcRenderer.on('update-available', () => callback());
+  },
+  onUpdateDownloaded: (callback: () => void) => {
+    ipcRenderer.on('update-downloaded', () => callback());
+  },
+  restartAndInstall: () => ipcRenderer.send('restart-and-update')
 })

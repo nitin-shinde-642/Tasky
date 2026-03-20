@@ -100,12 +100,36 @@ export const TaskItem = memo(function TaskItem({ task, index, onToggle, onDelete
               className="mb-2"
             >
               <motion.div
+                layout={!snapshot.isDragging}
+                initial={{ opacity: 0, y: 10, scale: 0.98 }}
+                animate={{ 
+                  opacity: snapshot.isDragging ? 1 : (task.completed ? 0.6 : 1),
+                  y: 0, 
+                  scale: 1 
+                }}
+                exit={{ 
+                  opacity: 0, 
+                  scale: 0.98,
+                  transition: { duration: 0.15 } 
+                }}
                 whileHover={{ y: -1, scale: 1.005 }}
-                transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                transition={{ 
+                  type: "spring", 
+                  stiffness: 500, 
+                  damping: 40,
+                  mass: 1,
+                  layout: {
+                    type: "spring",
+                    stiffness: 500,
+                    damping: 40,
+                  }
+                }}
                 className={cn(
-                  "group relative flex flex-col gap-2 rounded-lg border bg-card p-3 shadow-sm transition-colors select-none",
-                  snapshot.isDragging && "shadow-lg border-primary/50 z-50",
-                  task.completed && "opacity-60 bg-muted/50"
+                  "group relative flex flex-col gap-2 rounded-lg border p-3 shadow-sm transition-colors select-none",
+                  task.completed 
+                    ? (snapshot.isDragging ? "bg-muted border-muted-foreground/20" : "bg-muted/50") 
+                    : "bg-card",
+                  snapshot.isDragging && "shadow-lg border-primary/50 z-50"
                 )}
               >
                 <div className="flex items-start gap-3">

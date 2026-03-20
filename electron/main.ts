@@ -1,4 +1,5 @@
 import { app, BrowserWindow, ipcMain, dialog, Tray, Menu, nativeImage, shell } from 'electron'
+import { autoUpdater } from 'electron-updater'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { format } from 'date-fns'
@@ -114,6 +115,10 @@ ipcMain.on('store-set', (event, key, val) => {
 
 ipcMain.on('open-external', (event, url) => {
   shell.openExternal(url);
+});
+
+ipcMain.on('restart-and-update', () => {
+  autoUpdater.quitAndInstall();
 });
 
 // Phase 2: Folder Filesystem operations
@@ -544,4 +549,24 @@ app.whenReady().then(() => {
       win.focus();
     }
   });
+
+  // OTA Updates Check (Production only)
+  if (app.isPackaged) {
+    autoUpdater.checkForUpdatesAndNotify();
+  }
 })
+
+// autoUpdater Listeners
+autoUpdater.on('update-available', () => {
+  console.log('Update available.');
+  win?.webContents.send('update-available');
+});
+
+autoUpdater.on('update-downloaded', (info) => {
+  console.log('Update downloaded; will not install immediately as per user request.');
+  win?.webContents.send('update-downloaded');
+});
+
+autoUpdater.on('error', (err) => {
+  console.error('Error in auto-updater: ', err);
+});

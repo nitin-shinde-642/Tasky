@@ -29,6 +29,9 @@ export interface ISystemAPI {
   setAutoStart: (enable: boolean) => void;
   setWindowOpacity: (opacity: number) => void;
   openExternal: (url: string) => void;
+  onUpdateAvailable: (callback: () => void) => void;
+  onUpdateDownloaded: (callback: () => void) => void;
+  restartAndInstall: () => void;
 }
 
 declare global {
