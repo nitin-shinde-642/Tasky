@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 // Removed framer-motion since this is now a standard view
-import { X, Save, FolderOpen, Loader2, Settings, Palette, Moon, Sun, Monitor, HardDriveDownload, HardDriveUpload } from 'lucide-react';
+import { X, Save, FolderOpen, Loader2, Settings, Palette, Moon, Sun, Monitor, HardDriveDownload, HardDriveUpload, RefreshCw } from 'lucide-react';
 import { useFolders } from '@/context/FolderContext';
 import { useTheme } from '@/components/ThemeProvider';
 import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -17,8 +18,27 @@ export function SettingsView({ isOpen, onClose }: SettingsModalProps) {
   const [autoStart, setAutoStart] = useState(true);
   const [appVersion, setAppVersion] = useState('');
   const [updateStatus, setUpdateStatus] = useState<'idle' | 'available' | 'ready'>('idle');
+  const [isChecking, setIsChecking] = useState(false);
   const [status, setStatus] = useState<'idle' | 'saving' | 'success' | 'error'>('idle');
   const [message, setMessage] = useState('');
+
+  const handleCheckUpdates = async () => {
+    if (!window.systemAPI?.checkForUpdates) return;
+    setIsChecking(true);
+    try {
+      const result = await window.systemAPI.checkForUpdates();
+      if (result && result.error) {
+        toast.error(result.error);
+      } else if (!result || !result.updateInfo || result.updateInfo.version === appVersion) {
+        toast.info('You are already on the latest version.');
+      }
+    } catch (err) {
+      console.error('Manual check failed', err);
+      toast.error('Failed to check for updates. Make sure you are online.');
+    } finally {
+      setIsChecking(false);
+    }
+  };
 
   useEffect(() => {
     if (window.systemAPI?.getAutoStart) {
@@ -258,13 +278,24 @@ export function SettingsView({ isOpen, onClose }: SettingsModalProps) {
                       onClick={() => window.systemAPI.restartAndInstall()}
                       className="px-3 py-1.5 text-xs font-medium bg-primary text-primary-foreground hover:bg-primary/90 rounded-md transition-colors shadow-sm flex items-center gap-1.5"
                     >
-                      <Loader2 className="w-3.5 h-3.5" />
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
                       Restart and Update
                     </button>
                   ) : (
-                    <span className="text-xs font-semibold text-muted-foreground px-2 py-1 rounded bg-muted/30">
-                      {updateStatus === 'available' ? 'Downloading...' : `v${appVersion || '...'}`}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={handleCheckUpdates}
+                        disabled={isChecking}
+                        className="p-1.5 rounded-md hover:bg-muted text-muted-foreground transition-colors border shadow-sm bg-card disabled:opacity-50"
+                        title="Check for updates"
+                      >
+                        <RefreshCw className={cn("w-3.5 h-3.5", isChecking && "animate-spin")} />
+                      </button>
+                      <span className="text-xs font-semibold text-muted-foreground px-2 py-1 rounded bg-muted/30">
+                        {updateStatus === 'available' ? 'Downloading...' : `v${appVersion || '...'}`}
+                      </span>
+                    </div>
                   )}
                 </div>
               </div>

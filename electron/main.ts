@@ -24,6 +24,16 @@ export const RENDERER_DIST = path.join(process.env.APP_ROOT, 'dist')
 
 process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL ? path.join(process.env.APP_ROOT, 'public') : RENDERER_DIST
 
+// Environmental Separation: Use separate data folders for development
+if (!app.isPackaged) {
+  const devDataPath = path.join(app.getPath('appData'), 'TaskLyn-Dev');
+  app.setPath('userData', devDataPath);
+}
+
+const DEFAULT_BASE_DIR = app.isPackaged 
+  ? path.join(app.getPath('documents'), 'TaskLyn')
+  : path.join(app.getPath('documents'), 'TaskLyn-Dev');
+
 let win: BrowserWindow | null
 
 interface ArchivedTask {
@@ -117,6 +127,21 @@ ipcMain.handle('get-app-version', () => {
   return app.getVersion();
 });
 
+ipcMain.handle('check-for-updates', async () => {
+  console.log('Manual update check requested...');
+  if (!app.isPackaged) {
+    console.log('Update check skipped: App is not packaged.');
+    return { error: 'Update checks only work in the installed production app.' };
+  }
+  try {
+    const result = await autoUpdater.checkForUpdates();
+    return result;
+  } catch (err) {
+    console.error('AutoUpdater check failed:', err);
+    return { error: (err as Error).message };
+  }
+});
+
 ipcMain.on('open-external', (event, url) => {
   shell.openExternal(url);
 });
@@ -126,7 +151,6 @@ ipcMain.on('restart-and-update', () => {
 });
 
 // Phase 2: Folder Filesystem operations
-const DEFAULT_BASE_DIR = path.join(app.getPath('documents'), 'TaskLyn');
 
 ipcMain.handle('get-base-dir', () => {
   const customDir = store.get('base-dir') as string | undefined;
