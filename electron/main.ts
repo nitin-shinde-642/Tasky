@@ -580,19 +580,29 @@ app.whenReady().then(() => {
 
   // OTA Updates Check (Production only)
   if (app.isPackaged) {
+    // Check for updates silently in the background
     autoUpdater.checkForUpdatesAndNotify();
   }
 })
 
 // autoUpdater Listeners
 autoUpdater.on('update-available', () => {
-  console.log('Update available.');
+  console.log('Update available. Downloading...');
   win?.webContents.send('update-available');
 });
 
+autoUpdater.on('download-progress', (progressObj) => {
+  win?.webContents.send('update-progress', progressObj);
+});
+
 autoUpdater.on('update-downloaded', (info) => {
-  console.log('Update downloaded; will not install immediately as per user request.');
+  console.log('Update downloaded; forcing install and restarting...');
   win?.webContents.send('update-downloaded');
+  
+  // Force the application to restart and install instantly
+  setTimeout(() => {
+    autoUpdater.quitAndInstall(true, true);
+  }, 2000); // 2 second delay to show the "Success" toast on frontend
 });
 
 autoUpdater.on('error', (err) => {

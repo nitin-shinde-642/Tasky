@@ -32,6 +32,7 @@ export interface ISystemAPI {
   openExternal: (url: string) => void;
   onUpdateAvailable: (callback: () => void) => void;
   onUpdateDownloaded: (callback: () => void) => void;
+  onUpdateProgress?: (callback: (progress: any) => void) => void;
   checkForUpdates: () => Promise<any>;
   restartAndInstall: () => void;
 }

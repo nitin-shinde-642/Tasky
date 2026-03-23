@@ -14,6 +14,7 @@ import { Toaster } from 'sonner';
 import { RichTextEditor } from '@/components/RichTextEditor';
 import { motion, AnimatePresence } from 'framer-motion';
 import { DailySummaryModal } from '@/components/SummaryModal';
+import { UpdateProvider } from '@/context/UpdateContext';
 
 function AppContent() {
   const { addTask } = useTasks();
@@ -145,8 +146,10 @@ function App() {
       <FolderProvider>
         <TaskProvider>
           <ArchivalProvider>
-            <AppContent />
-            <Toaster position="bottom-right" />
+            <UpdateProvider>
+              <AppContent />
+              <Toaster position="bottom-right" />
+            </UpdateProvider>
           </ArchivalProvider>
         </TaskProvider>
       </FolderProvider>

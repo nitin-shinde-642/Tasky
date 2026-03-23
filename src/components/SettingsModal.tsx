@@ -5,6 +5,7 @@ import { useFolders } from '@/context/FolderContext';
 import { useTheme } from '@/components/ThemeProvider';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { useUpdateInfo } from '@/context/UpdateContext';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -14,31 +15,12 @@ interface SettingsModalProps {
 export function SettingsView({ isOpen, onClose }: SettingsModalProps) {
   const { baseDir, updateBaseDir } = useFolders();
   const { theme, setTheme } = useTheme();
+  const { updateStatus, progress, checkForUpdates } = useUpdateInfo();
   const [newDir, setNewDir] = useState(baseDir);
   const [autoStart, setAutoStart] = useState(true);
   const [appVersion, setAppVersion] = useState('');
-  const [updateStatus, setUpdateStatus] = useState<'idle' | 'available' | 'ready'>('idle');
-  const [isChecking, setIsChecking] = useState(false);
   const [status, setStatus] = useState<'idle' | 'saving' | 'success' | 'error'>('idle');
   const [message, setMessage] = useState('');
-
-  const handleCheckUpdates = async () => {
-    if (!window.systemAPI?.checkForUpdates) return;
-    setIsChecking(true);
-    try {
-      const result = await window.systemAPI.checkForUpdates();
-      if (result && result.error) {
-        toast.error(result.error);
-      } else if (!result || !result.updateInfo || result.updateInfo.version === appVersion) {
-        toast.info('You are already on the latest version.');
-      }
-    } catch (err) {
-      console.error('Manual check failed', err);
-      toast.error('Failed to check for updates. Make sure you are online.');
-    } finally {
-      setIsChecking(false);
-    }
-  };
 
   useEffect(() => {
     if (window.systemAPI?.getAutoStart) {
@@ -47,21 +29,6 @@ export function SettingsView({ isOpen, onClose }: SettingsModalProps) {
 
     if (window.systemAPI?.getAppVersion) {
       window.systemAPI.getAppVersion().then(setAppVersion);
-    }
-
-    // Update listeners
-    if (window.systemAPI?.onUpdateAvailable) {
-      window.systemAPI.onUpdateAvailable(() => {
-        setUpdateStatus('available');
-        toast.info('New update available. Downloading...', { duration: 5000 });
-      });
-    }
-
-    if (window.systemAPI?.onUpdateDownloaded) {
-      window.systemAPI.onUpdateDownloaded(() => {
-        setUpdateStatus('ready');
-        toast.success('Update downloaded and ready to install!', { duration: 10000 });
-      });
     }
   }, []);
 
@@ -269,10 +236,13 @@ export function SettingsView({ isOpen, onClose }: SettingsModalProps) {
                     <span className="text-xs text-muted-foreground max-w-[200px]">
                       {updateStatus === 'idle' ? 'Your app is up to date.' : 
                        updateStatus === 'available' ? 'Downloading update...' : 
+                       updateStatus === 'downloading' ? `Downloading... ${progress.toFixed(0)}%` :
+                       updateStatus === 'checking' ? 'Checking for updates...' :
+                       updateStatus === 'error' ? 'Failed to fetch update info.' :
                        'New version is ready to install.'}
                     </span>
                   </div>
-                  {updateStatus === 'ready' ? (
+                  {updateStatus === 'downloaded' ? (
                     <button 
                       type="button"
                       onClick={() => window.systemAPI.restartAndInstall()}
@@ -282,19 +252,26 @@ export function SettingsView({ isOpen, onClose }: SettingsModalProps) {
                       Restart and Update
                     </button>
                   ) : (
-                    <div className="flex items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={handleCheckUpdates}
-                        disabled={isChecking}
-                        className="p-1.5 rounded-md hover:bg-muted text-muted-foreground transition-colors border shadow-sm bg-card disabled:opacity-50"
-                        title="Check for updates"
-                      >
-                        <RefreshCw className={cn("w-3.5 h-3.5", isChecking && "animate-spin")} />
-                      </button>
-                      <span className="text-xs font-semibold text-muted-foreground px-2 py-1 rounded bg-muted/30">
-                        {updateStatus === 'available' ? 'Downloading...' : `v${appVersion || '...'}`}
-                      </span>
+                    <div className="flex flex-col items-end gap-2">
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={checkForUpdates}
+                          disabled={updateStatus === 'checking' || updateStatus === 'downloading'}
+                          className="p-1.5 rounded-md hover:bg-muted text-muted-foreground transition-colors border shadow-sm bg-card disabled:opacity-50"
+                          title="Check for updates"
+                        >
+                          <RefreshCw className={cn("w-3.5 h-3.5", (updateStatus === 'checking' || updateStatus === 'downloading') && "animate-spin")} />
+                        </button>
+                        <span className="text-xs font-semibold text-muted-foreground px-2 py-1 rounded bg-muted/30">
+                          {updateStatus === 'downloading' ? `${progress.toFixed(0)}%` : `v${appVersion || '...'}`}
+                        </span>
+                      </div>
+                      {updateStatus === 'downloading' && (
+                        <div className="w-24 h-1.5 bg-muted rounded-full overflow-hidden">
+                          <div className="h-full bg-primary transition-all duration-300" style={{ width: `${progress}%` }} />
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>

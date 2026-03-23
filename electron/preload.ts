@@ -55,6 +55,9 @@ contextBridge.exposeInMainWorld('systemAPI', {
   onUpdateAvailable: (callback: () => void) => {
     ipcRenderer.on('update-available', () => callback());
   },
+  onUpdateProgress: (callback: (progressObj: any) => void) => {
+    ipcRenderer.on('update-progress', (_, progressObj) => callback(progressObj));
+  },
   onUpdateDownloaded: (callback: () => void) => {
     ipcRenderer.on('update-downloaded', () => callback());
   },
