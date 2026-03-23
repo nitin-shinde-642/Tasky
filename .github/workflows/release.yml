@@ -1,9 +1,12 @@
-name: Build and Release
+name: Build and Release to GitHub Pages
 
 on:
   push:
     tags:
       - 'v*'
+
+permissions:
+  contents: write
 
 jobs:
   release:
@@ -22,7 +25,14 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Build and Publish
-        run: npm run build:win -- --publish always
-        env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+      - name: Build Application
+        # This will create release/*.exe and release/latest.yml
+        run: npm run build:win
+
+      - name: Deploy to GitHub Pages (Free File Server)
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./release
+          # This replaces the gh-pages branch with only the latest release files
+          # keeping your repository clean and below size limits.

@@ -28,9 +28,8 @@
       "icon": "public/icon.png"
     },
     "publish": {
-      "provider": "github",
-      "owner": "nitin-shinde-642",
-      "repo": "Tasky"
+      "provider": "generic",
+      "url": "https://nitin-shinde-642.github.io/Tasky/"
     }
   },
   "dependencies": {
