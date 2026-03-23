@@ -204,7 +204,7 @@ export function TaskDetailsModal({ task, isOpen, onClose, onDelete, onToggle, on
                         }}
                       >
                         <div 
-                          className="prose prose-sm prose-tight dark:prose-invert max-w-none text-sm text-foreground/90 break-words leading-relaxed pl-6 mt-2 pb-4 [&_p]:m-0 [&_ul]:my-1 [&_ol]:my-1 [&_li]:my-0"
+                          className="prose prose-sm prose-tight dark:prose-invert max-w-none text-sm text-foreground/90 break-words [&_a]:break-all leading-relaxed pl-6 mt-2 pb-4 [&_p]:m-0 [&_ul]:my-1 [&_ol]:my-1 [&_li]:my-0"
                           dangerouslySetInnerHTML={{ __html: task.description }}
                         />
                       </ContextMenu.Trigger>

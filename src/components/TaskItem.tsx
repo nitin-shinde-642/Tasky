@@ -206,7 +206,7 @@ export const TaskItem = memo(function TaskItem({ task, index, onToggle, onDelete
                             <div
                               ref={descRef}
                               className={cn(
-                                "prose prose-sm dark:prose-invert max-w-none text-xs break-words leading-relaxed [&_p]:m-0 [&_ul]:my-1 [&_ol]:my-1 [&_li]:my-0",
+                                "prose prose-sm dark:prose-invert max-w-none text-xs break-words [&_a]:break-all leading-relaxed [&_p]:m-0 [&_ul]:my-1 [&_ol]:my-1 [&_li]:my-0",
                                 !isExpanded && "line-clamp-2 overflow-hidden"
                               )}
                               dangerouslySetInnerHTML={{ __html: task.description || '' }}
