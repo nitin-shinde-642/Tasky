@@ -5,11 +5,17 @@ on:
     tags:
       - 'v*'
 
+# Grant GITHUB_TOKEN the permissions required to make a Pages deployment
 permissions:
-  contents: write
+  contents: read
+  pages: write
+  id-token: write
 
 jobs:
   release:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     runs-on: windows-latest
 
     steps:
@@ -26,13 +32,17 @@ jobs:
         run: npm install
 
       - name: Build Application
-        # This will create release/*.exe and release/latest.yml
         run: npm run build:win
 
-      - name: Deploy to GitHub Pages (Free File Server)
-        uses: peaceiris/actions-gh-pages@v4
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
         with:
-          personal_token: ${{ secrets.GH_TOKEN }}
-          publish_dir: ./release
-          # This replaces the gh-pages branch with only the latest release files
-          # keeping your repository clean and below size limits.
+          # Upload the built release directory directly to the CDN
+          path: './release'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
