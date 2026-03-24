@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Calendar as CalendarIcon, Check } from 'lucide-react';
+import { X, Calendar as CalendarIcon, Check, Eye } from 'lucide-react';
 import { useFolders } from '@/context/FolderContext';
 import { format, subDays, isBefore, startOfDay, parseISO } from 'date-fns';
 import { Calendar } from '@/components/ui/calendar';
+import { TaskDetailsModal } from '@/components/TaskDetailsModal';
 import type { Task } from '@/types/task';
 
 interface ArchivedLog {
@@ -27,6 +28,7 @@ export function HistoryModal({ isOpen, onClose }: HistoryModalProps) {
   const [logData, setLogData] = useState<{ type: 'json' | 'markdown' | 'text', content: ArchivedLog | string } | null>(null);
   const [archivedDates, setArchivedDates] = useState<Date[]>([]);
   const [loading, setLoading] = useState(false);
+  const [previewTask, setPreviewTask] = useState<Task | null>(null);
 
   useEffect(() => {
     async function fetchLog() {
@@ -136,8 +138,8 @@ export function HistoryModal({ isOpen, onClose }: HistoryModalProps) {
               </h4>
               <div className="space-y-3">
                 {completedTasks.map((task: Task) => (
-                  <div key={task.id} className="flex gap-3 p-3 rounded-lg border bg-muted/30 opacity-70 group transition-all hover:opacity-100">
-                    <div className="mt-0.5">
+                  <div key={task.id} className="flex gap-3 p-3 rounded-lg border bg-muted/30 opacity-70 group transition-all hover:opacity-100 items-start">
+                    <div className="mt-0.5 shrink-0">
                        <Check className="w-4 h-4 text-green-500" />
                     </div>
                     <div className="flex-1 min-w-0">
@@ -149,6 +151,13 @@ export function HistoryModal({ isOpen, onClose }: HistoryModalProps) {
                         />
                       )}
                     </div>
+                    <button 
+                      onClick={() => setPreviewTask(task)}
+                      className="opacity-0 group-hover:opacity-100 p-1.5 rounded-md hover:bg-muted text-muted-foreground transition-all border shadow-sm bg-background shrink-0"
+                      title="Preview Task"
+                    >
+                      <Eye className="w-4 h-4" />
+                    </button>
                   </div>
                 ))}
               </div>
@@ -167,7 +176,7 @@ export function HistoryModal({ isOpen, onClose }: HistoryModalProps) {
               </h4>
               <div className="space-y-3">
                 {pendingTasks.map((task: Task) => (
-                  <div key={task.id} className="flex gap-3 p-3 rounded-lg border bg-card/50 shadow-sm">
+                  <div key={task.id} className="flex gap-3 p-3 rounded-lg border bg-card/50 shadow-sm group items-start">
                     <div className="mt-1 flex items-center justify-center w-4 h-4 rounded border border-muted-foreground/30 shrink-0" />
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium">{task.title}</p>
@@ -178,6 +187,13 @@ export function HistoryModal({ isOpen, onClose }: HistoryModalProps) {
                         />
                       )}
                     </div>
+                    <button 
+                      onClick={() => setPreviewTask(task)}
+                      className="opacity-0 group-hover:opacity-100 p-1.5 rounded-md hover:bg-muted text-muted-foreground transition-all border shadow-sm bg-background shrink-0"
+                      title="Preview Task"
+                    >
+                      <Eye className="w-4 h-4" />
+                    </button>
                   </div>
                 ))}
               </div>
@@ -249,6 +265,13 @@ export function HistoryModal({ isOpen, onClose }: HistoryModalProps) {
               </div>
             </div>
           </motion.div>
+          {previewTask && (
+            <TaskDetailsModal
+              task={previewTask}
+              isOpen={!!previewTask}
+              onClose={() => setPreviewTask(null)}
+            />
+          )}
         </div>
       )}
     </AnimatePresence>
