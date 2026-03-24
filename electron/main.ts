@@ -406,7 +406,11 @@ ipcMain.handle('archive-day', async (event, dateString: string) => {
       fs.writeFileSync(mdPath, mdContent, 'utf8');
 
       // 2. Save JSON Companion (for rich UI)
-      const jsonPath = path.join(archiveDir, `${day}.json`);
+      const jsonDir = path.join(archiveDir, 'json');
+      if (!fs.existsSync(jsonDir)) {
+        fs.mkdirSync(jsonDir, { recursive: true });
+      }
+      const jsonPath = path.join(jsonDir, `${day}.json`);
       fs.writeFileSync(jsonPath, JSON.stringify({
         date: dateString,
         folder,
@@ -435,7 +439,7 @@ ipcMain.handle('read-archive', async (event, folder: string, dateString: string)
   const day = d < 10 ? `0${d}` : d.toString();
   
   const archiveDir = path.join(baseDir, folder, year, month);
-  const jsonPath = path.join(archiveDir, `${day}.json`);
+  const jsonPath = path.join(archiveDir, 'json', `${day}.json`);
   const mdPath = path.join(archiveDir, `${day}.md`);
  
   try {
