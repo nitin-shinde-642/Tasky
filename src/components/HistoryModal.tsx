@@ -138,7 +138,7 @@ export function HistoryModal({ isOpen, onClose }: HistoryModalProps) {
               </h4>
               <div className="space-y-3">
                 {completedTasks.map((task: Task) => (
-                  <div key={task.id} className="flex gap-3 p-3 rounded-lg border bg-muted/30 opacity-70 group transition-all hover:opacity-100 items-start">
+                  <div key={task.id} className="flex gap-3 p-3 rounded-lg border bg-muted/30 opacity-70 transition-all hover:opacity-100 items-start">
                     <div className="mt-0.5 shrink-0">
                        <Check className="w-4 h-4 text-green-500" />
                     </div>
@@ -146,14 +146,14 @@ export function HistoryModal({ isOpen, onClose }: HistoryModalProps) {
                       <p className="text-sm font-medium line-through decoration-muted-foreground/50">{task.title}</p>
                       {task.description && (
                         <div 
-                          className="mt-1 text-xs text-muted-foreground prose prose-sm prose-tight dark:prose-invert max-w-none break-words [&_a]:break-all line-clamp-2 group-hover:line-clamp-none transition-all"
+                          className="mt-1 text-xs text-muted-foreground prose prose-sm prose-tight dark:prose-invert max-w-none break-words [&_a]:break-all line-clamp-2 transition-all"
                           dangerouslySetInnerHTML={{ __html: task.description }}
                         />
                       )}
                     </div>
                     <button 
                       onClick={() => setPreviewTask(task)}
-                      className="opacity-0 group-hover:opacity-100 p-1.5 rounded-md hover:bg-muted text-muted-foreground transition-all border shadow-sm bg-background shrink-0"
+                      className="p-1.5 rounded-md hover:bg-muted text-muted-foreground transition-colors"
                       title="Preview Task"
                     >
                       <Eye className="w-4 h-4" />
@@ -176,20 +176,20 @@ export function HistoryModal({ isOpen, onClose }: HistoryModalProps) {
               </h4>
               <div className="space-y-3">
                 {pendingTasks.map((task: Task) => (
-                  <div key={task.id} className="flex gap-3 p-3 rounded-lg border bg-card/50 shadow-sm group items-start">
+                  <div key={task.id} className="flex gap-3 p-3 rounded-lg border bg-card/50 shadow-sm items-start hover:bg-muted/30 transition-colors">
                     <div className="mt-1 flex items-center justify-center w-4 h-4 rounded border border-muted-foreground/30 shrink-0" />
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium">{task.title}</p>
                       {task.description && (
                         <div 
-                          className="mt-1 text-xs text-muted-foreground prose prose-invert max-w-none break-words [&_a]:break-all"
+                          className="mt-1 text-xs text-muted-foreground prose prose-invert max-w-none break-words [&_a]:break-all line-clamp-2"
                           dangerouslySetInnerHTML={{ __html: task.description }}
                         />
                       )}
                     </div>
                     <button 
                       onClick={() => setPreviewTask(task)}
-                      className="opacity-0 group-hover:opacity-100 p-1.5 rounded-md hover:bg-muted text-muted-foreground transition-all border shadow-sm bg-background shrink-0"
+                      className="p-1.5 rounded-md hover:bg-muted text-muted-foreground transition-colors"
                       title="Preview Task"
                     >
                       <Eye className="w-4 h-4" />
