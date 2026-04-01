@@ -170,6 +170,7 @@ export function TaskDetailsModal({ task, isOpen, onClose, onDelete, onToggle, on
                      <RichTextEditor
                        content={editDesc || ''}
                        onChange={setEditDesc}
+                       onSubmit={handleSave}
                      />
                    </div>
 

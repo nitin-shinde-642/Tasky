@@ -167,6 +167,7 @@ export const TaskItem = memo(function TaskItem({ task, index, onToggle, onDelete
                           <RichTextEditor
                             content={editDesc || ''}
                             onChange={setEditDesc}
+                            onSubmit={handleSave}
                           />
                           <div className="flex flex-col gap-1 shrink-0">
                             <button onClick={handleSave} className="p-1.5 bg-primary text-primary-foreground rounded-md hover:opacity-90 transition-opacity" title="Save changes">
