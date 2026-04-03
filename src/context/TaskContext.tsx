@@ -59,7 +59,7 @@ export const TaskProvider = ({ children }: { children: ReactNode }) => {
 
   // Save on change
   useEffect(() => {
-    if (!activeFolder) return;
+    if (!activeFolder || isLoading) return;
     try {
       if (window.store) {
         window.store.set(getStorageKey(), tasks);
@@ -69,7 +69,7 @@ export const TaskProvider = ({ children }: { children: ReactNode }) => {
     } catch (e) {
       console.error("Failed to save tasks", e);
     }
-  }, [tasks, activeFolder, getStorageKey]);
+  }, [tasks, activeFolder, getStorageKey, isLoading]);
 
   const addTask = useCallback((title: string, description: string = '') => {
     if (!title.trim()) return;
